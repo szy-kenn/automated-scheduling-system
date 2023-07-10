@@ -11,7 +11,9 @@ class ScheduledCourse(Course):
         Parameters
         ----------
         course : Course
-            a Course object 
+            a Course object
+        day : str
+            
         """
         super().__init__(*course.all_attr)
         self.day = day
