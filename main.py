@@ -1,5 +1,5 @@
 from scheduling import *
-from _config import get_course
+from _config import *
 from datetime import time
 import csv
 
@@ -9,7 +9,6 @@ def get_time(str):
         hour += 12
     min = int(str[str.index(":")+1:str.index(":")+3])
     return (hour, min)
-
 
 def load_csv(csv_path):
     """Loads the given csv file and returns a list of six sublists
@@ -44,5 +43,5 @@ def load_csv(csv_path):
 if __name__ == '__main__':
     scheds = load_csv("scheds.csv")
     evaluator = Evaluator(time(19, 0), 1.5, 5, 6, 2, 5)
-    evaluator.evaluate(scheds[2], avg_dismissal_debug=True)
+    evaluator.evaluate(scheds[0], avg_dismissal_debug=True)
 
