@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 @dataclass
 class Course:
     """A data class used to represent a Couse"""

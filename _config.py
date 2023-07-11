@@ -1,4 +1,4 @@
-from classes.course import Course
+from scheduling.course import Course
 from typing import Final
 
 COMP20093: Final = Course('COMP', 20093, 'Information Management', True, 3, 2)

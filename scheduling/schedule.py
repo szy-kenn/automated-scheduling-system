@@ -15,6 +15,7 @@ class Schedule:
         }
 
     def print(self):
+        print(self.name)
         for key, val in self.schedule.items():
             print(key)
             scheduled_course : ScheduledCourse
