@@ -2,6 +2,7 @@ from .schedule import Schedule
 from .scheduled_course import ScheduledCourse
 from .functions import _debug_bracket
 from datetime import time, timedelta
+from copy import deepcopy
 from math import floor
 
 class Evaluator:
@@ -49,7 +50,7 @@ class Evaluator:
         dismissals = []
         if debug:
             print(f"{_debug_bracket()} Evaluating Average Dismissal...")
-        for val in schedule.schedule.values():
+        for val in schedule.schedule.values():  # val type : list[ScheduledCourse]
             if (len(val) > 0):
                 course: ScheduledCourse
                 course = val[-1]
@@ -84,8 +85,18 @@ class Evaluator:
 
     @staticmethod
     def _get_avg_classes(schedule: Schedule, debug=False) -> int:
-        pass
+        # WAG NA TO
+        total_counter = 0
 
+        for val in schedule.schedule.values():
+            counter = 0
+            if (len(val) > 0):
+                for course in val:
+                    counter += 1
+                total_counter += counter
+                print(f"{course.day}", counter)
+        print(f"{total_counter / 6}")
+        
     @staticmethod
     def _get_avg_class_hrs(schedule: Schedule, debug=False) -> int:
         pass
@@ -96,7 +107,24 @@ class Evaluator:
 
     @staticmethod
     def _get_max_consecutive_class_hrs(schedule: Schedule, debug=False) -> int:
-        pass
+        for key, val in schedule.schedule.items():
+            if len(val) > 0:
+                max_consecutive_secs = 0
+                i = 0
+                start_time = time()
+                end_time = time()
+                while i < len(val) -1:
+                    while (i < len(val) - 1 and 
+                            Evaluator.time_to_sec(val[i].end_time) == Evaluator.time_to_sec(val[i+1].start_time)):
+                        if start_time.hour == 0:
+                            start_time = val[i].start_time
+                        i += 1
+                        end_time = val[i].end_time
+                        if Evaluator.time_to_sec(end_time) - Evaluator.time_to_sec(start_time) > max_consecutive_secs:
+                            max_consecutive_secs = Evaluator.time_to_sec(end_time) - Evaluator.time_to_sec(start_time)
+                    i += 1
+                max_consecutive_hrs = max_consecutive_secs / 3600
+                print(max_consecutive_hrs)
 
     def evaluate(self, schedule: Schedule, **kwargs):
         """Evaluates the given schedule based on the defined most convenient schedule"""
@@ -117,12 +145,43 @@ class Evaluator:
         # sched_avg_class_hrs = self._get_avg_class_hrs(schedule)
         # avg_class_hrs_diff = self.convnt_avg_class_hrs - sched_avg_class_hrs
 
-        # # ========== EVALUATION 5: Evaluate the maximum consecutive classes ========== #
-        # sched_max_consecutive_classes = self._get_max_consecutive_classes(schedule)
-        # max_consecutive_classes_diff = self.convnt_max_consecutive_classes - sched_max_consecutive_classes
+        # ========== EVALUATION 5: Evaluate the maximum consecutive classes ========== #
+        sched_max_consecutive_classes = self._get_max_consecutive_classes(schedule)
+        max_consecutive_classes_diff = self.convnt_max_consecutive_classes - sched_max_consecutive_classes
 
         # # ========== EVALUATION 6: Evaluate the maximum consecutive class hours ========== #
         # sched_max_consecutive_class_hrs = self._get_max_consecutive_class_hrs(schedule)
         # sched_max_consecutive_class_hrs = self.convnt_max_consecutive_class_hrs - sched_max_consecutive_class_hrs
 
-        print(f"Dismissal Difference: {avg_dismissal_diff} hrs\nVacancy Difference: {avg_vacancy_diff} hrs")
+        print(f"Dismissal Difference: {avg_dismissal_diff} hrs\nVacancy Difference: {avg_vacancy_diff} hrs\nMax Consecutive Classes{max_consecutive_classes_diff}")
+    
+    # def swap(self, arr, i1, i2):
+    #     copied = deepcopy(arr)
+    #     temp = copied[i1]
+    #     copied[i1] = copied[i2]
+    #     copied[i2] = temp
+    #     return copied   
+
+    # def switch_scheds(self, schedule: Schedule):
+    #     permutations = []
+    #     operation = 0
+    #     best_eval = float('-inf')
+
+    #     def permutation(array, left):
+    #         nonlocal best_eval, operation
+
+    #         if ((len(array)-1) - left == 0):
+    #             operation += 1
+    #             permutations.append(array)
+
+    #             # if self.sum_arr(array) < minimum:
+    #             #     minimum = self.sum_arr(array)
+    #             #     best_assignment = array
+
+    #             return array
+            
+    #         for i in range(left, len(array)):
+    #             swapped = self.swap(array, i, left)
+    #             permutation(swapped, left+1)
+
+    #     permutation(schedule, 0)

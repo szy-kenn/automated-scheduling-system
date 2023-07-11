@@ -43,6 +43,6 @@ def load_csv(csv_path):
 
 if __name__ == '__main__':
     scheds = load_csv("scheds.csv")
-    evaluator = Evaluator(time(18, 0), 1.5, 5, 6, 2, 5)
+    evaluator = Evaluator(time(19, 0), 1.5, 5, 6, 2, 5)
     evaluator.evaluate(scheds[2], avg_dismissal_debug=True)
 
