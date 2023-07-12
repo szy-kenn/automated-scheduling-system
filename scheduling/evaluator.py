@@ -31,7 +31,7 @@ class Evaluator:
         dismissals = []
         if debug:
             print(f"{debug_bracket()} Evaluating Average Dismissal...")
-        for timeslot_container in schedule.schedule.values():  # val type : list[ScheduledCourse]
+        for timeslot_container in schedule.schedule: 
             if (len(timeslot_container.assigned_timeslots) > 0):
                 course: ScheduledCourse
                 course = timeslot_container.assigned_timeslots[-1].course
@@ -54,7 +54,7 @@ class Evaluator:
         vacants = timedelta()
         counter = 0
 
-        for timeslot_container in schedule.schedule.values():  # for each day of the week's schedule
+        for timeslot_container in schedule.schedule:  # for each day of the week's schedule
             if len(timeslot_container.assigned_timeslots) > 0:
                 for i in range(len(timeslot_container.assigned_timeslots)):   # for every courses in the day's schedule
                     if i < len(timeslot_container.assigned_timeslots) - 1:
@@ -68,7 +68,7 @@ class Evaluator:
         # WAG NA TO
         total_counter = 0
 
-        for val in schedule.schedule.values():
+        for val in schedule.schedule:
             counter = 0
             if (len(val) > 0):
                 for course in val:
@@ -88,7 +88,7 @@ class Evaluator:
     @staticmethod
     def _get_max_consecutive_class_hrs(schedule: Schedule, debug=False) -> int:
         max_consecutive_hrs_per_day = []
-        for key, timeslot_container in schedule.schedule.items():
+        for idx, timeslot_container in enumerate(schedule.schedule):
             if len(timeslot_container.assigned_timeslots) > 0:
                 max_consecutive_secs = 0
                 i = 0
@@ -106,7 +106,6 @@ class Evaluator:
                     i += 1
                 max_consecutive_hrs = max_consecutive_secs / 3600
                 max_consecutive_hrs_per_day.append(max_consecutive_hrs)
-                # print(key, max_consecutive_hrs)
         return sum(max_consecutive_hrs_per_day) / len(max_consecutive_hrs_per_day)
 
     def evaluate(self, schedule: Schedule, **kwargs):

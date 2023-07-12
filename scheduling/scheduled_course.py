@@ -1,7 +1,8 @@
 from .course import Course
+from .time_range import TimeRange
 from datetime import time
 
-class ScheduledCourse(Course):
+class ScheduledCourse(Course, TimeRange):
 
     def __init__(self, course: Course, day: str, start_time: time, end_time: time):
         """
@@ -21,9 +22,9 @@ class ScheduledCourse(Course):
             the end time of the session
             
         """
-        super().__init__(*course.all_attr)
+        print(*course.all_attr)
+        Course.__init__(self, *course.all_attr)
+        TimeRange.__init__(self, start_time, end_time)
         self.day = day
-        self.start_time = start_time
-        self.end_time = end_time
         self.timeslot_unit = (self.total_units * 60) / 30
         
