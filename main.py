@@ -1,5 +1,6 @@
 from scheduling import *
 from datetime import time
+from tabulate import tabulate
 import csv
 
 def get_time(str):
@@ -40,19 +41,34 @@ def load_csv(csv_path):
     return [cs21, cs22, cs23, cs24, cs25, cs21n]
 
 if __name__ == '__main__':
-    pop = Population()
-    for i in range(100000):
-        pop.create_individuals()
-        # print("CREATED POPULATIONS")
-        assigned_courses = 0
-        for container in pop.population.schedule:
-            assigned_courses += len(container.assigned_timeslots)
-        print(assigned_courses)
-        # pop.population.print()
+    # pop = Population()
+    genetic = Genetic(10, 0, 0.01, 1000, time(21, 0), 1.5, 5, 6, 2, 3)
+
+    scheds = []
+    conflicts = []
+
+    genetic.start_world()
+
+    # for i in range(100):
+    #     # print(f"{i} Formulating the best schedule...")
+    #     pop.population = pop.create_individuals()
+    #     conflict = genetic.evaluate(pop.population)
+    #     # if score == 0:
+    #     #     pop.population.print()
+    #     #     break
+    #     scheds.append(pop.population)
+    #     conflicts.append(conflict)
+    #     print(f"{i} | {fitness.evaluate(pop.population)}")
+    # print(conflicts.index(max(conflicts)))
+    
+    # with open("random_data.csv", "w", encoding="UTF8", newline='') as f:
+    #     writer = csv.writer(f)
+    #     writer.writerow(["SCHEDULE NO.", "DISMISSAL SCORE", "VACANCY SCORE", "MAX CONSC CLASS", "TRUE SCORE"])
+    #     for item in _list:
+    #         writer.writerow(item)
+
     # scheds = load_csv("scheds.csv")
     # s = scheds[0]
-    evaluator = Evaluator(time(19, 0), 1.5, 5, 6, 2, 5)
-    # evaluator.evaluate(pop.population, avg_dismissal_debug=True)
     # lego_stacker = LegoStacker()
 
     # lego_stacker.initialize()

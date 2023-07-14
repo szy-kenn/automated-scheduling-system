@@ -42,7 +42,8 @@ class TimeslotContainer(TimeRange):
     def assigned_courses(self) -> list:
         assigned_courses = []
         for timeslot in self.assigned_timeslots:
-            if assigned_courses.count(timeslot.course) == 0:
+            if (assigned_courses.count(timeslot.course) == 0 or 
+                (assigned_courses.count(timeslot.course) == 1 and timeslot.course.type != assigned_courses[assigned_courses.index(timeslot.course)].type)):
                 assigned_courses.append(timeslot.course)
         return assigned_courses
     

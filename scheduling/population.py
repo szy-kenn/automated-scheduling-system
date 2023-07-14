@@ -10,7 +10,7 @@ from copy import deepcopy
 
 class Population:
     def __init__(self) -> None:
-        self.population = self.create_individuals()
+        self.population = []
 
     def print(self):
         for key, val in enumerate(self.population):
@@ -18,7 +18,7 @@ class Population:
             for timeslot, sub in val.items():
                 print(timeslot, sub)
 
-    def create_individuals(self):
+    def initialize(self):
         individuals = [
             ScheduledCourse(COMP20093, "LAB"),
             ScheduledCourse(COMP20103, "LAB"),
@@ -31,23 +31,6 @@ class Population:
             ScheduledCourse(COMP20093, "LEC"),
             ScheduledCourse(COMP20103, "LEC"),
             ScheduledCourse(COMP20113, "DIVIDED")]
-        # individuals = ["IM-LAB", "DESALGO", "OS-LAB", "ECOMM",
-        #                "ARTAPP", "PECO", "PE", "TECHDOC",
-        #                "TECHDOC", "IM-LEC", "OS-LEC"]
-        
-        # timeslots = ["7:30 AM - 9:00 AM",
-        #         "9:00 AM - 10:30 AM", 
-        #         "10:30 AM - 12:00 NN",
-        #         "12:00 NN - 1:30 PM",
-        #         "1:30 PM - 3:00 PM",
-        #         "3:00 PM - 4:30 PM",
-        #         "4:30 PM - 6:00 PM",
-        #         "6:00 PM - 7:30 PM",
-        #         "7:30 PM - 9:00 PM"]
-
-        # timeslots = ["7:30 AM - 9:00 AM",
-        #         "1:30 PM - 3:00 PM",
-        #         "6:00 PM - 7:30 PM"]
 
         self.ref_timeslot_container = TimeslotContainer('Reference', time(hour=7, minute=30),
                                                     time(hour=21), 1.5)
@@ -70,9 +53,10 @@ class Population:
         #   assign the timeslots to the course
         #   pop the chosen timeslots in the chosen_day list
         
-        while individuals:
+        added_individual = 0
+        while added_individual != 11:
             # print("MAY LAMAN PA SA INDIVIDUALS")
-            chosen_individual = individuals.pop(random.randrange(len(individuals))) # RANDOM NA SUBJECT!
+            chosen_individual = individuals[random.randrange(len(individuals))] # RANDOM NA SUBJECT!
             
             invalid_day = True
             while invalid_day:
@@ -90,8 +74,9 @@ class Population:
 
             if chosen_individual.code != "COMP20113":
                  self.timeslots_week[chosen_day_idx].container.pop(chosen_timeslot_idx)
+            added_individual += 1
 
-        return schedule
+        self.population = schedule
     
     def get_valid_indices(self, chosen_day_idx, course) -> list:
         """Return a list of valid indices given the course and the chosen day index"""

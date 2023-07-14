@@ -1,11 +1,12 @@
 from .schedule import Schedule
 from .scheduled_course import ScheduledCourse
 from .functions import *
+from ._config import *
 from datetime import time, timedelta
 from copy import deepcopy
 from math import floor
 
-class Evaluator:
+class Fitness:
 
     def __init__(self, avg_dismissal: time, avg_vacancy: int, avg_classes: int,
                  avg_class_hrs: int, max_consecutive_classes: int,  max_consecutive_class_hrs: int) -> None:
@@ -24,8 +25,24 @@ class Evaluator:
         self.convnt_max_consecutive_class_hrs = max_consecutive_class_hrs
         self.convnt_vacancy_session_ratio = self.convnt_avg_vacancy / self.convnt_avg_class_hrs
 
-    @staticmethod
-    def _get_avg_dismissal(schedule: Schedule, debug=False) -> int:
+    def get_true_score(self, initial_score, c=0) -> float:
+        # avg_dismissal = self._get_avg_dismissal(schedule)
+        # initial_score = avg_dismissal / time_to_sec(self.convnt_avg_dismissal)
+
+        if initial_score <= 1:
+            final_score = initial_score / 1
+        else:
+            final_score = (1 / initial_score) - (1 - (1/initial_score * (1-c)))
+
+        if final_score < 0:
+            return 0
+        return final_score
+    
+    def get_overall_score(self, dismissal, vacancy, consecutive_hrs):
+        total = dismissal * 0.4 + vacancy * 0.3 + consecutive_hrs * 0.3
+        return total 
+
+    def _get_avg_dismissal_score(self, schedule: Schedule, debug=False) -> int:
         """Returns the average time of the list of time objects passed in seconds""" 
 
         dismissals = []
@@ -45,10 +62,9 @@ class Evaluator:
         # td_avg = timedelta(hours=floor(avg), minutes=(avg % floor(avg)) * 60)
         if debug:
             print(f"{debug_bracket()} Computed dismissal time: {avg}")
-        return avg
-
-    @staticmethod
-    def _get_avg_vacancy(schedule: Schedule, debug=False) -> time:
+        return avg / time_to_sec(self.convnt_avg_dismissal)
+    
+    def _get_avg_vacancy_score(self, schedule: Schedule, debug=False) -> time:
         """Returns the average vacancy of the schedule for the whole week in seconds"""
 
         vacants = timedelta()
@@ -61,10 +77,9 @@ class Evaluator:
                         vacant = time_to_td(timeslot_container.assigned_timeslots[i+1].course.start_time) - time_to_td(timeslot_container.assigned_timeslots[i].course.end_time)
                         vacants += vacant
                         counter += 1
-        return vacants.seconds / counter
+        return (vacants.seconds / counter) / self.convnt_avg_vacancy
 
-    @staticmethod
-    def _get_avg_classes(schedule: Schedule, debug=False) -> int:
+    def _get_avg_classes(self, schedule: Schedule, debug=False) -> int:
         # WAG NA TO
         total_counter = 0
 
@@ -77,16 +92,13 @@ class Evaluator:
                 print(f"{course.day}", counter)
         print(f"{total_counter / 6}")
         
-    @staticmethod
-    def _get_avg_class_hrs(schedule: Schedule, debug=False) -> int:
+    def _get_avg_class_hrs(self, schedule: Schedule, debug=False) -> int:
         pass
 
-    @staticmethod
-    def _get_max_consecutive_classes(schedule: Schedule, debug=False) -> int:
+    def _get_max_consecutive_classes(self, schedule: Schedule, debug=False) -> int:
         pass
 
-    @staticmethod
-    def _get_max_consecutive_class_hrs(schedule: Schedule, debug=False) -> int:
+    def _get_max_consecutive_class_hrs_score(self, schedule: Schedule, debug=False) -> int:
         max_consecutive_hrs_per_day = []
         for idx, timeslot_container in enumerate(schedule.schedule):
             if len(timeslot_container.assigned_timeslots) > 0:
@@ -106,38 +118,95 @@ class Evaluator:
                     i += 1
                 max_consecutive_hrs = max_consecutive_secs / 3600
                 max_consecutive_hrs_per_day.append(max_consecutive_hrs)
-        return max_consecutive_hrs_per_day
+        return max(max_consecutive_hrs_per_day) / self.convnt_max_consecutive_class_hrs
         # return sum(max_consecutive_hrs_per_day) / len(max_consecutive_hrs_per_day)
 
     def evaluate(self, schedule: Schedule, **kwargs):
         """Evaluates the given schedule based on the defined most convenient schedule"""
+        
+        conflict = 0
 
-        # ========== EVALUATION 1: Evaluate the average dismissal ========== #
-        sched_avg_dismissal = self._get_avg_dismissal(schedule, debug=kwargs.get('avg_dismissal_debug') if kwargs.get('avg_dismissal_debug') != None else False)
-        avg_dismissal_diff = (time_to_sec(self.convnt_avg_dismissal) - sched_avg_dismissal) / 3600
+        # HARD CONSTRAINTS
+        individuals = [
+            ScheduledCourse(COMP20093, "LAB"),
+            ScheduledCourse(COMP20103, "LAB"),
+            ScheduledCourse(COMP20113, "DIVIDED"),
+            ScheduledCourse(COSC30033, "LEC"),
+            ScheduledCourse(COSCFE2, "LEC"),
+            ScheduledCourse(PHED10042, "LEC"),
+            ScheduledCourse(GEED10073, "LEC"),
+            ScheduledCourse(GEED20113, "LEC"),
+            ScheduledCourse(COMP20093, "LEC"),
+            ScheduledCourse(COMP20103, "LEC"),
+            ScheduledCourse(COMP20113, "DIVIDED")]
+        
+        for individual in individuals:
+            if schedule.get_course(individual) == -1:
+                conflict += 15
 
-        # ========== EVALUATION 2: Evaluate the average vacancy ========== #
-        sched_avg_vacancy = self._get_avg_vacancy(schedule)
-        avg_vacancy_diff = (self.convnt_avg_vacancy - sched_avg_vacancy) / 3600
+        # may lunch break ka ba?
+        for timeslot_container in schedule.schedule:
+            if (timeslot_container.container[timeslot_container.get_timeslot(time(hour=10, minute=30))].course != None
+                and timeslot_container.container[timeslot_container.get_timeslot(time(hour=12))].course != None):
+                conflict += 1
 
-        # # ========== EVALUATION 3: Evaluate the average classes ========== #
-        # sched_avg_classes = self._get_avg_classes(schedule)
-        # avg_classes_diff = self.convnt_avg_classes - sched_avg_classes
+        # may free day ka ba?
+        class_day_counter = 0
+        for timeslot_container in schedule.schedule:
+            if len(timeslot_container.assigned_courses) > 0:
+                class_day_counter += 1
 
-        # # ========== EVALUATION 4: Evaluate the average class hours ========== #
-        # sched_avg_class_hrs = self._get_avg_class_hrs(schedule)
-        # avg_class_hrs_diff = self.convnt_avg_class_hrs - sched_avg_class_hrs
+        if class_day_counter == 6:
+            conflict += 1
+        
+        # ano oras uwian mo?
+        for timeslot_container in schedule.schedule:
+            if timeslot_container.assigned_timeslots:
+                # last_timeslot = timeslot_container.assigned_timeslots[len(timeslot_container.assigned_timeslots)-1]
+                last_timeslot = timeslot_container.container[timeslot_container.get_timeslot(time(hour=19, minute=30))].course
+                if (last_timeslot != None):
+                    conflict += 1
+                    # LAB ba yan?
+                    if last_timeslot.type == "PHED 10042":
+                        conflict += 2
+        
+        # maximum classes
+        for timeslot_container in schedule.schedule:
+            if len(timeslot_container.assigned_courses) > 3:
+                conflict += 1
+            # elif len(timeslot_container.assigned_courses) == 0:
+            #     conflict -= 1
 
-        # ========== EVALUATION 5: Evaluate the maximum consecutive classes ========== #
-        # sched_max_consecutive_classes = self._get_max_consecutive_classes(schedule)
-        # max_consecutive_classes_diff = self.convnt_max_consecutive_classes - sched_max_consecutive_classes
+        # magkahiwalay ba lab subjects mo? may kasama ba syang iba?
+        lab_sub_day = None
+        for timeslot_container in schedule.schedule:
+            for assigned_courses in timeslot_container.assigned_courses:
+                if assigned_courses.type == 'LAB':
+                    if assigned_courses.start_time.hour >= 18:
+                        conflict += 2
+                    if lab_sub_day == None:
+                        lab_sub_day = assigned_courses.day
+                    else:
+                        if lab_sub_day != assigned_courses.day:
+                            conflict += 1
+                            if len(schedule.get_by_day(lab_sub_day).assigned_courses) > 1:
+                                conflict += 1
+                            if len(schedule.get_by_day(assigned_courses.day).assigned_courses) > 1:
+                                conflict += 1
+                        else:
+                            if len(schedule.get_by_day(lab_sub_day).assigned_courses) > 2:
+                                conflict += 2
 
-        # # ========== EVALUATION 6: Evaluate the maximum consecutive class hours ========== #
-        sched_max_consecutive_class_hrs = self._get_max_consecutive_class_hrs(schedule)
-        # sched_max_consecutive_class_hrs_diff = self.convnt_max_consecutive_class_hrs - sched_max_consecutive_class_hrs
+        return conflict     
 
-        print(f"Dismissal: {sec_to_time(sched_avg_dismissal)}\nVacancy: {sched_avg_vacancy / 3600} hrs\nAverage Max Consecutive Class Hours {sched_max_consecutive_class_hrs}")
-    
+
+        # lego formula
+        # dismissal_score = self._get_avg_dismissal_score(schedule)
+        # vacancy_score = self._get_avg_vacancy_score(schedule)
+        # max_consecutive_score = self._get_max_consecutive_class_hrs_score(schedule)
+        # overall_score = self.get_overall_score(dismissal_score, vacancy_score, max_consecutive_score)
+        # return overall_score
+
     # def swap(self, arr, i1, i2):
     #     copied = deepcopy(arr)
     #     temp = copied[i1]
