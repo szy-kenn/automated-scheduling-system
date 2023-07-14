@@ -39,7 +39,7 @@ def get_course_sched(course, sched_list: list) -> list:
 
     for sched in sched_list:
         _course_sched[sched.name] = [] 
-        for timeslot_container in sched.schedule.values():
+        for timeslot_container in sched.schedule:
             if len(timeslot_container.assigned_timeslots) > 0:
                 for timeslot in timeslot_container.assigned_timeslots:
                     if timeslot.course.code == course.code:

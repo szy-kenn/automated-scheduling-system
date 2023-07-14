@@ -106,7 +106,8 @@ class Evaluator:
                     i += 1
                 max_consecutive_hrs = max_consecutive_secs / 3600
                 max_consecutive_hrs_per_day.append(max_consecutive_hrs)
-        return sum(max_consecutive_hrs_per_day) / len(max_consecutive_hrs_per_day)
+        return max_consecutive_hrs_per_day
+        # return sum(max_consecutive_hrs_per_day) / len(max_consecutive_hrs_per_day)
 
     def evaluate(self, schedule: Schedule, **kwargs):
         """Evaluates the given schedule based on the defined most convenient schedule"""
@@ -133,7 +134,7 @@ class Evaluator:
 
         # # ========== EVALUATION 6: Evaluate the maximum consecutive class hours ========== #
         sched_max_consecutive_class_hrs = self._get_max_consecutive_class_hrs(schedule)
-        sched_max_consecutive_class_hrs_diff = self.convnt_max_consecutive_class_hrs - sched_max_consecutive_class_hrs
+        # sched_max_consecutive_class_hrs_diff = self.convnt_max_consecutive_class_hrs - sched_max_consecutive_class_hrs
 
         print(f"Dismissal: {sec_to_time(sched_avg_dismissal)}\nVacancy: {sched_avg_vacancy / 3600} hrs\nAverage Max Consecutive Class Hours {sched_max_consecutive_class_hrs}")
     

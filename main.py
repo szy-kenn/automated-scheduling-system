@@ -1,5 +1,4 @@
 from scheduling import *
-from _config import *
 from datetime import time
 import csv
 
@@ -41,8 +40,25 @@ def load_csv(csv_path):
     return [cs21, cs22, cs23, cs24, cs25, cs21n]
 
 if __name__ == '__main__':
-    scheds = load_csv("scheds.csv")
-    s = scheds[0]
+    pop = Population()
+    for i in range(100000):
+        pop.create_individuals()
+        # print("CREATED POPULATIONS")
+        assigned_courses = 0
+        for container in pop.population.schedule:
+            assigned_courses += len(container.assigned_timeslots)
+        print(assigned_courses)
+        # pop.population.print()
+    # scheds = load_csv("scheds.csv")
+    # s = scheds[0]
     evaluator = Evaluator(time(19, 0), 1.5, 5, 6, 2, 5)
-    evaluator.evaluate(scheds[0], avg_dismissal_debug=True)
+    # evaluator.evaluate(pop.population, avg_dismissal_debug=True)
+    # lego_stacker = LegoStacker()
 
+    # lego_stacker.initialize()
+    # # lego_stacker.create_baseplate()
+    # res = lego_stacker.place([COMP20093, COMP20103])
+    # print(res)
+    # print(s.schedule[0].assigned_courses)
+
+    # s.change_timeslot(s.schedule[0].assigned_courses[1], s.schedule[0].container[22], 'Monday')

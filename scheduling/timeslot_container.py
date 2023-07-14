@@ -29,7 +29,6 @@ class TimeslotContainer(TimeRange):
         for i in range(int(self.timeslot_count)):
             self.container.append(Timeslot(td_to_time(_start), td_to_time(_start + timedelta(seconds=self.timeslot_size * 3600))))
             _start += timedelta(seconds=self.timeslot_size * 3600)
-
     @property
     def assigned_timeslots(self) -> int:
         """Returns the number of assigned timeslots in the container"""
@@ -39,6 +38,30 @@ class TimeslotContainer(TimeRange):
                 assigned_timeslots.append(val)
         return assigned_timeslots
     
+    @property
+    def assigned_courses(self) -> list:
+        assigned_courses = []
+        for timeslot in self.assigned_timeslots:
+            if assigned_courses.count(timeslot.course) == 0:
+                assigned_courses.append(timeslot.course)
+        return assigned_courses
+    
+    def get_valid_positions(self) -> list:
+
+        valid_positions = []
+
+        for i in range(len(self.container)):
+            last_idx_with_course = None
+            if self.container[i].course != None:
+                last_idx_with_course = i
+            else:
+                if last_idx_with_course == None:
+                    valid_positions.append(i)
+                    break
+                elif i - last_idx_with_course <= 2:
+                    valid_positions.append(i)
+        return valid_positions
+    
     def print(self):
         for timeslot in self.container:
             print(timeslot)
@@ -46,15 +69,23 @@ class TimeslotContainer(TimeRange):
     def get_timeslot(self, time: time) -> int:
         """Returns the index of the timeslot given the time"""
         i = 0
-        while time.strftime("%H:%M:%S") != self.container[i].start_time.strftime("%H:%M:%S"):
-            i += 1
-        return i
+        searching = True
+        while searching:
+            # print("SEARCHING TIMESLOT INDEX")
+            if time.strftime("%H:%M:%S") != self.container[i].start_time.strftime("%H:%M:%S"):
+                if i < len(self.container) - 1:
+                    i += 1
+                else:
+                    return -1
+            else:
+                return i
 
     def assign(self, item):
         """Assigns a ScheduledCourse in the timeslot"""
 
         _current_timeslot_idx = self.get_timeslot(item.start_time)
-        while (time_to_sec(self.container[_current_timeslot_idx].end_time) != time_to_sec(item.end_time)):
+        while (time_to_sec(self.container[_current_timeslot_idx].end_time) < time_to_sec(item.end_time)):
+            # print(time_to_sec(self.container[_current_timeslot_idx].end_time), time_to_sec(item.end_time))
             self.container[_current_timeslot_idx].assign(item)
             _current_timeslot_idx += 1
         self.container[_current_timeslot_idx].assign(item)
