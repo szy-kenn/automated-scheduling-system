@@ -5,7 +5,7 @@ from .population import Population
 from .schedule import Schedule
 from .timeslot_container import TimeslotContainer
 import matplotlib.pyplot as plt
-from datetime import time
+from datetime import time, datetime
 from copy import deepcopy
 from math import floor
 import random
@@ -39,14 +39,21 @@ class Genetic:
         self.max_generations = max_generations
 
         self.plots = []
+        self.mutation_count_list = []
+        self.mutation_count = 0
+        self.current_generation = 0
 
     def start_world(self):
+        print("Starting world ", datetime.now().time())
         self.initialize_generation()
         terminated = False
         for i in range(self.max_generations):
             self.calculate_fitness()
-            self.selection()
-        # self.evaluation()
+            res = self.selection()
+            if res:
+                break
+        self.evaluation()
+        self.plot()
         return 
 
     def initialize_generation(self):
@@ -80,7 +87,9 @@ class Genetic:
                 added_individual += 1
 
             self.population.append(schedule)
-    
+        self.current_generation += 1
+        print("Finish initializing world ", datetime.now().time())
+
     def get_valid_indices(self, chosen_day_idx, course) -> list:
         """Return a list of valid indices given the course and the chosen day index"""
         if course.code == 'COMP20113':
@@ -101,70 +110,88 @@ class Genetic:
         pass
 
     def calculate_fitness(self):
+        print("Calculating fitness ", datetime.now().time())
         for idx, schedule in enumerate(self.population):
             schedule.calculate_fitness()
 
     def evaluation(self):
-        pass
+        # self.ranking()
+        idx = min(sched.conflicts for sched in self.population)
+        for sched in self.population:
+            if sched.conflicts == idx:
+                sched.print()
+                break
+        # print(f"BEST SCHEDULE : (conflicts = {self.population[0].conflicts})")
+        # self.population[0].print()
 
     def selection(self):
+        print("Starting selection process ", datetime.now().time())
         self.mating_pool = []
         self.max_conflicts = max(schedule.conflicts for schedule in self.population)
+        
         def get_mating_probability(conflicts):
-            return 100 - (conflicts / (1 + self.max_conflicts) * 100)
+            return 10 - (conflicts / (1 + self.max_conflicts) * 10)
 
         for schedule in self.population:
             # schedule.print()
             self.plots.append(schedule.conflicts)
-            if schedule.conflicts == 0:
-                print("ZERO")
-                break
-            # print(floor(get_mating_probability(schedule.conflicts)))
+            # print(schedule.conflicts)
+
+            if schedule.conflicts <= 2:
+                print(schedule.conflicts)
+                schedule.print()
+                return True
+            
             for _ in range(floor(get_mating_probability(schedule.conflicts))):
                 self.mating_pool.append(schedule)
-            self.ranking()
-            top2 = self.population[:2]  # ELITISM
+
+            if len(self.mating_pool) == 0:
+                return True
+        print("Start ranking the mating pool ", datetime.now().time())
+        # self.ranking()
+        # top2 = self.population[:2]  # ELITISM
         self.population = []
-        self.population.extend(top2)
+        # self.population.extend(top2)
+        print(f"Creating GENERATION {self.current_generation}", datetime.now().time())
+        self.current_generation += 1
         while len(self.population) < self.population_size + (self.population_size * self.growth_rate):
             a_index = random.randrange(len(self.mating_pool))
             b_index = random.randrange(len(self.mating_pool))
             parent_a = (self.mating_pool[a_index])
             parent_b = (self.mating_pool[b_index])
-            child = parent_a.crossover(parent_b)
-            mutated_child = self.mutation(child)
-            self.population.append(mutated_child)
+            child = parent_a.crossover(parent_b, self.mutation_rate)
+            # self.mutation(child)
+            self.population.append(child)
             # print(len(self.new_generation))
 
     def ranking(self):
         copied_population = self.population
-        sorted_conflicts = []
-        for i in range(len(copied_population)):
-            for j in range(len(copied_population)):
-                if (copied_population[i].conflicts < copied_population[j].conflicts):
-                    copied_population[i], copied_population[j] = copied_population[j], copied_population[i]
+        for i in range(len(self.population)):
+            for j in range(len(self.population)):
+                if (self.population[i].conflicts > self.population[j].conflicts):
+                    self.population[i], self.population[j] = self.population[j], self.population[i]
 
         # print([population.conflicts for population in copied_population])
 
-    def crossover(self):
-        """Uniform crossover"""
-        pass
-    
-    def mutation(self, _schedule):
-        schedule = deepcopy(_schedule)
-        for idx, timeslot_container in enumerate(schedule.schedule):
-            for idx2, timeslot in enumerate(timeslot_container.container):
-                res = random.randint(0, self.mutation_rate * 10000)
-                if res == 1:
-                    new_scheduled_course_idx = random.randrange(len(self.individuals) + 1)
-                    if new_scheduled_course_idx == len(self.individuals):
-                        schedule.schedule[idx].container[idx2].assign(None)
-                    else:
-                        new_scheduled_course = self.individuals[new_scheduled_course_idx]
-                        new_scheduled_course.assign(timeslot_container.name, timeslot.start_time)
-                        schedule.schedule[idx].container[idx2].assign(new_scheduled_course)
-                    # timeslot.assign(new_scheduled_course)
-        return schedule
-    
+
     def plot(self):
-        pass
+        # fig = plt.figure(figsize=(10, 10))
+        plt.style.use("dark_background")
+        plt.rcParams["figure.figsize"] = (12, 5) # size of the chart
+        # plt.rcParams['toolbar'] = 'None' # removes toolbar at the bottom
+
+        plt.plot(self.plots)
+        # plt.plot(self.mutation_count_list)
+
+        for color in ['figure.facecolor', 'axes.facecolor', 'savefig.facecolor']:
+            plt.rcParams[color] = '#052C30' 
+        for color in ['text.color', 'axes.labelcolor', 'xtick.color', 'ytick.color']:
+            plt.rcParams[color] = '#E6F9FA'
+
+        plt.grid(color='#2A3459')
+
+        # plt.suptitle('PROPORTIONAL GROWTH RATE', fontsize=22)
+        plt.xlabel('Schedules', fontsize=16)
+        plt.ylabel('Conflicts', fontsize=16)
+
+        plt.show()

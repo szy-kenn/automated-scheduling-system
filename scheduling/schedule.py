@@ -3,6 +3,7 @@ from .scheduled_course import ScheduledCourse
 from .timeslot import Timeslot
 from .timeslot_container import TimeslotContainer
 from datetime import time
+from copy import deepcopy
 import random
 class Schedule:
 
@@ -77,6 +78,19 @@ class Schedule:
             if self.get_course(individual) == -1:
                 conflict += 15
 
+        # for timeslot_container in self.schedule:
+        #     for idx, timeslot in enumerate(timeslot_container.container):
+        #         if timeslot.course != None:
+        #             if timeslot.course.type != "DIVIDED":
+        #                 if idx < len(timeslot_container.container) - 1:
+        #                     if timeslot_container.container[idx+1].course != None:
+        #                         if timeslot_container.container[idx+1].course.code != timeslot.course.code:
+        #                             conflict += 10
+        #                     else:
+        #                         conflict += 10
+        #                 else:
+        #                     conflict += 10
+
         # may lunch break ka ba?
         for timeslot_container in self.schedule:
             if (timeslot_container.container[timeslot_container.get_timeslot(time(hour=10, minute=30))].course != None
@@ -85,9 +99,14 @@ class Schedule:
 
         # may free day ka ba?
         class_day_counter = 0
+        assigned_timeslots = 0
         for timeslot_container in self.schedule:
             if len(timeslot_container.assigned_courses) > 0:
                 class_day_counter += 1
+            assigned_timeslots += len(timeslot_container.assigned_timeslots)
+
+        if assigned_timeslots != 20:
+            conflict += 10
 
         if class_day_counter == 6:
             conflict += 1
@@ -119,7 +138,7 @@ class Schedule:
                         lab_sub_day = assigned_courses.day
                     else:
                         if lab_sub_day != assigned_courses.day:
-                            conflict += 1
+                            conflict += 5
                             if len(self.get_by_day(lab_sub_day).assigned_courses) > 1:
                                 conflict += 1
                             if len(self.get_by_day(assigned_courses.day).assigned_courses) > 1:
@@ -128,22 +147,117 @@ class Schedule:
                             if len(self.get_by_day(lab_sub_day).assigned_courses) > 2:
                                 conflict += 2
         self.conflicts = conflict
-        print(conflict)
+        # print(conflict)
 
-    def crossover(self, schedule):
+    def crossover(self, schedule, mutation_rate):
         """one-point crossover"""
 
-        midpoint = random.randrange(len(self.schedule))
-        # print(midpoint)
+        length = len(self.schedule) * len(self.schedule[0].container)
+        midpoint = random.randrange(length)
         child = Schedule('Schedule')
 
-        for i in range(midpoint):
-            child.schedule[i] = self.schedule[i]
-        for i in range(midpoint, len(self.schedule)):
-            child.schedule[i] = schedule.schedule[i]
-
+        i = 0
+        while i < length:
+            two_timeslots = False
+            if i < midpoint:
+                course = self.schedule[int(i//9)].container[i%9].course
+                if course != None:
+                    if course.type != "DIVIDED":
+                        if i < midpoint - 1:
+                            i += 1
+                            next_course = self.schedule[int(i//9)].container[i%9].course
+                            if next_course != None and next_course.code == course.code and next_course.type == course.type:
+                                child.schedule[int((i-1)//9)].assign(course)
+                                # child.schedule[int(i//9)].container[i%9].assign(course)
+                                two_timeslots = True
+                                child = self.mutation(child, int((i-1)//9), (i-1)%9, mutation_rate)
+                                continue
+                            else:
+                                continue
+                    else:
+                        child.schedule[int(i//9)].container[i%9].assign(course)
+                else:
+                    child.schedule[int(i//9)].container[i%9].assign(course)
+            else:
+                course = schedule.schedule[int(i//9)].container[i%9].course
+                if course != None:
+                    if course.type != "DIVIDED":
+                        if i < length - 1 and i > midpoint:
+                            i += 1
+                            next_course = schedule.schedule[int(i//9)].container[i%9].course
+                            if next_course != None and next_course.code == course.code and next_course.type == course.type:
+                                child.schedule[int((i-1)//9)].assign(course)
+                                # child.schedule[int(i//9)].container[i%9].assign(course)
+                                two_timeslots = True
+                                child = self.mutation(child, int((i-1)//9), (i-1)%9, mutation_rate)
+                                continue
+                            else:
+                                continue
+                    else:
+                        child.schedule[int(i//9)].assign(course)
+                else:
+                    child.schedule[int(i//9)].container[i%9].assign(course)
+        # for i in range(length):
+        #     if i < midpoint:
+        #         child.schedule[int(i//9)].container[i%9].assign(self.schedule[int(i//9)].container[i%9].course)
+        #     else:
+        #         child.schedule[int(i//9)].container[i%9].assign(schedule.schedule[int(i//9)].container[i%9].course)
+            # child = self.mutation(child, int(i//9), i%9, mutation_rate)
+            # if two_timeslots:
+            #     child = self.mutation(child, int(i//9), i%9, mutation_rate, )
+            # else:
+            child = self.mutation(child, int(i//9), i%9, mutation_rate)
+            i += 1
+ 
         return child
     
+    def mutation(self, child, idx1, idx2, mutation_rate):
+        #TODO: Needs optimization, algorithm is taking a lot of time here
+        # schedule = deepcopy(_schedule)
+        res = random.random()
+        if res < mutation_rate:
+            if (child.schedule[idx1].container[idx2].course == None or
+                child.schedule[idx1].container[idx2].course.type == 'DIVIDED'):
+                if idx2 < len(child.schedule[idx1].container) - 1:
+                    if child.schedule[idx1].container[idx2+1].course != None:
+                        res2 = random.random()
+                        if res2 >= 0.5:
+                            child.schedule[idx1].container[idx2].assign(None)
+                        else:
+                            new_scheduled_course = self.individuals[2]
+                            new_scheduled_course.assign(child.schedule[idx1].name, child.schedule[idx1].container[idx2].start_time)
+                            child.schedule[idx1].assign(new_scheduled_course)
+                    else:
+                        new_scheduled_course_idx = random.randrange(len(self.individuals))
+                        new_scheduled_course = self.individuals[new_scheduled_course_idx]
+                        new_scheduled_course.assign(child.schedule[idx1].name, child.schedule[idx1].container[idx2].start_time)
+                        child.schedule[idx1].assign(new_scheduled_course)
+                else:
+                    res2 = random.random()
+                    if res2 >= 0.5:
+                        child.schedule[idx1].container[idx2].assign(None)
+                    else:
+                        new_scheduled_course = self.individuals[2]
+                        new_scheduled_course.assign(child.schedule[idx1].name, child.schedule[idx1].container[idx2].start_time)
+                        child.schedule[idx1].assign(new_scheduled_course)
+            else:
+                if idx2 < len(child.schedule[idx1].container) - 1:
+                    new_scheduled_course_idx = random.randrange(len(self.individuals))
+                    new_scheduled_course = self.individuals[new_scheduled_course_idx]
+                    new_scheduled_course.assign(child.schedule[idx1].name, child.schedule[idx1].container[idx2].start_time)
+                    child.schedule[idx1].assign(new_scheduled_course)
+                    if new_scheduled_course.type == "DIVIDED":
+                        child.schedule[idx1].container[idx2+1].assign(None)
+
+            # new_scheduled_course_idx = random.randrange(len(self.individuals))
+            # if new_scheduled_course_idx == len(self.individuals):
+            #     child.schedule[idx1].container[idx2].assign(None)
+            # else:
+            # new_scheduled_course = self.individuals[new_scheduled_course_idx]
+            # new_scheduled_course.assign(child.schedule[idx1].name, child.schedule[idx1].container[idx2].start_time)
+            # child.schedule[idx1].container[idx2].assign(new_scheduled_course)
+        return child
+        
     def __repr__(self) -> str:
         return self.name
 

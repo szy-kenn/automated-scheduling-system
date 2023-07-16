@@ -42,7 +42,7 @@ def load_csv(csv_path):
 
 if __name__ == '__main__':
     # pop = Population()
-    genetic = Genetic(10, 0, 0.01, 1000, time(21, 0), 1.5, 5, 6, 2, 3)
+    genetic = Genetic(100, 0, 0.0, 100, time(21, 0), 1.5, 5, 6, 2, 3)
 
     scheds = []
     conflicts = []
