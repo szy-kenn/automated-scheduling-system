@@ -87,7 +87,9 @@ class Genetic:
                 added_individual += 1
 
             self.population.append(schedule)
+            # schedule.print()
         self.current_generation += 1
+        
         print("Finish initializing world ", datetime.now().time())
 
     def get_valid_indices(self, chosen_day_idx, course) -> list:
@@ -116,9 +118,12 @@ class Genetic:
 
     def evaluation(self):
         # self.ranking()
+        self.calculate_fitness()
         idx = min(sched.conflicts for sched in self.population)
         for sched in self.population:
             if sched.conflicts == idx:
+                print(sched.conflicts)
+                print(sched.conflict_names)
                 sched.print()
                 break
         # print(f"BEST SCHEDULE : (conflicts = {self.population[0].conflicts})")
@@ -130,35 +135,41 @@ class Genetic:
         self.max_conflicts = max(schedule.conflicts for schedule in self.population)
         
         def get_mating_probability(conflicts):
-            return 10 - (conflicts / (1 + self.max_conflicts) * 10)
+            # return 10
+            return 100 - (conflicts / (1 + self.max_conflicts) * 100)
 
+        
+        self.plots.append(sum(sched.conflicts for sched in self.population) / len(self.population))
         for schedule in self.population:
             # schedule.print()
-            self.plots.append(schedule.conflicts)
-            # print(schedule.conflicts)
+            print(schedule.conflicts)
 
             if schedule.conflicts <= 2:
                 print(schedule.conflicts)
+                print(schedule.conflict_names)
                 schedule.print()
                 return True
             
             for _ in range(floor(get_mating_probability(schedule.conflicts))):
                 self.mating_pool.append(schedule)
 
-            if len(self.mating_pool) == 0:
-                return True
+            # if len(self.mating_pool) == 0:
+            #     return True
         print("Start ranking the mating pool ", datetime.now().time())
         # self.ranking()
-        # top2 = self.population[:2]  # ELITISM
+        # top2 = self.population[:(int(0.1 * self.population_size))]  # ELITISM
         self.population = []
         # self.population.extend(top2)
         print(f"Creating GENERATION {self.current_generation}", datetime.now().time())
         self.current_generation += 1
+        # while len(self.population) < 1:
         while len(self.population) < self.population_size + (self.population_size * self.growth_rate):
             a_index = random.randrange(len(self.mating_pool))
             b_index = random.randrange(len(self.mating_pool))
             parent_a = (self.mating_pool[a_index])
             parent_b = (self.mating_pool[b_index])
+            if parent_a == parent_b:
+                continue
             child = parent_a.crossover(parent_b, self.mutation_rate)
             # self.mutation(child)
             self.population.append(child)
