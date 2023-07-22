@@ -90,7 +90,7 @@ class Schedule:
             count = all_courses_week.count((individual.code, individual.type))
             if count != 2:
                 self.conflict_names.append("DUPLICATES")
-                conflict += 10
+                conflict += 20
 
         # for timeslot_container in self.schedule:
         #     for idx, timeslot in enumerate(timeslot_container.container):
@@ -110,7 +110,7 @@ class Schedule:
             if (timeslot_container.container[timeslot_container.get_timeslot(time(hour=10, minute=30))].course != None
                 and timeslot_container.container[timeslot_container.get_timeslot(time(hour=12))].course != None):
                 self.conflict_names.append("lunch break")
-                conflict += 2
+                conflict += 5
 
         # may free day ka ba?
         class_day_counter = 0
@@ -126,7 +126,7 @@ class Schedule:
 
         if class_day_counter == 6:
             self.conflict_names.append("walang free day")
-            conflict += 1
+            conflict += 2
         
         # ano oras uwian mo?
         for timeslot_container in self.schedule:
@@ -135,7 +135,7 @@ class Schedule:
                 last_timeslot = timeslot_container.container[timeslot_container.get_timeslot(time(hour=19, minute=30))].course
                 if (last_timeslot != None):
                     self.conflict_names.append("may klase sa last timeslot")
-                    conflict += 1
+                    conflict += 3
                     # LAB ba yan?
                     if last_timeslot.type == "PHED 10042":
                         self.conflict_names.append("pe gabi")
@@ -145,7 +145,7 @@ class Schedule:
         for timeslot_container in self.schedule:
             if len(timeslot_container.assigned_courses) > 3:
                 self.conflict_names.append("+3 klase")
-                conflict += 1
+                conflict += 4
 
         # magkahiwalay ba lab subjects mo? may kasama ba syang iba?
         lab_sub_day = None
@@ -154,23 +154,23 @@ class Schedule:
                 if assigned_courses.type == 'LAB':
                     if assigned_courses.start_time.hour >= 18:
                         self.conflict_names.append("gabi lab")
-                        conflict += 2
+                        conflict += 5
                     if lab_sub_day == None:
                         lab_sub_day = assigned_courses.day
                     else:
                         if lab_sub_day != assigned_courses.day:
                             self.conflict_names.append("lab di sabay")
-                            conflict += 5
+                            conflict += 8
                             if len(self.get_by_day(lab_sub_day).assigned_courses) > 1:
                                 self.conflict_names.append("may kasabay na iba lab1")
-                                conflict += 1
+                                conflict += 2
                             if len(self.get_by_day(assigned_courses.day).assigned_courses) > 1:
                                 self.conflict_names.append("may kasabay na iba lab2")
-                                conflict += 1
+                                conflict += 2
                         else:
                             if len(self.get_by_day(lab_sub_day).assigned_courses) > 2:
                                 self.conflict_names.append("may kasabay na iba magkasama lab")
-                                conflict += 2
+                                conflict += 3
         self.conflicts = conflict
         # print(conflict)
 

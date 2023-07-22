@@ -44,6 +44,7 @@ class Genetic:
         self.current_generation = 0
 
     def start_world(self):
+        _start_time_algorithm = datetime.now().time()
         print("Starting world ", datetime.now().time())
         self.initialize_generation()
         terminated = False
@@ -53,6 +54,8 @@ class Genetic:
             if res:
                 break
         self.evaluation()
+        _end_time_algorithm = datetime.now().time()
+        print(f"Start Time: {_start_time_algorithm}\nEnd Time: {_end_time_algorithm}")
         self.plot()
         return 
 
@@ -144,7 +147,7 @@ class Genetic:
             # schedule.print()
             print(schedule.conflicts)
 
-            if schedule.conflicts <= 2:
+            if schedule.conflicts < 6:
                 print(schedule.conflicts)
                 print(schedule.conflict_names)
                 schedule.print()
