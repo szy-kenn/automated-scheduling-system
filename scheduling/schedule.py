@@ -170,7 +170,7 @@ class Schedule:
                         else:
                             if len(self.get_by_day(lab_sub_day).assigned_courses) > 2:
                                 self.conflict_names.append("may kasabay na iba magkasama lab")
-                                conflict += 3
+                                conflict += 8
         self.conflicts = conflict
         # print(conflict)
 

@@ -9,6 +9,7 @@ from datetime import time, datetime
 from copy import deepcopy
 from math import floor
 import random
+import csv
 
 class Genetic:
     def __init__(self, population_size, growth_rate, mutation_rate, max_generations, avg_dismissal: time, avg_vacancy: int, avg_classes: int,
@@ -42,6 +43,9 @@ class Genetic:
         self.mutation_count_list = []
         self.mutation_count = 0
         self.current_generation = 0
+        
+        self.top_schedule = None
+        self.top_children = []
 
     def start_world(self):
         _start_time_algorithm = datetime.now().time()
@@ -122,15 +126,125 @@ class Genetic:
     def evaluation(self):
         # self.ranking()
         self.calculate_fitness()
-        idx = min(sched.conflicts for sched in self.population)
-        for sched in self.population:
-            if sched.conflicts == idx:
-                print(sched.conflicts)
-                print(sched.conflict_names)
-                sched.print()
-                break
+        # self.population.sort(key=self.population)
+        for i in range(len(self.population)):
+            for j in range(len(self.population)):
+                if (self.population[i].conflicts < self.population[j].conflicts):
+                    self.population[i], self.population[j] = self.population[j], self.population[i]
+
+        top1 = self.population[0]
+        self.top_schedule = top1
+        # idx = min(sched.conflicts for sched in self.population)
+        # for sched in self.population:
+        #     if sched.conflicts == idx:
+        #         print(sched.conflicts)
+        #         print(sched.conflict_names)
+        #         sched.print()
+        #         break
+
+        # deletes data
+        with open("random_data.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerow([""])
+
+        self.produce_sextuple()
+
+        # for top in top6:
+        #     print(top.conflicts)
+        #     print(top.conflict_names)
+        #     _list = [[], [], [], [], [], [], [], [], []]
+
+        #     for timeslot_idx in range(len(_list)):
+        #         for i in range(6):
+        #             _list[timeslot_idx].append(top.schedule[i].container[timeslot_idx])
+
+        #     with open("random_data.csv", "a", encoding="UTF8", newline='') as f:
+        #         writer = csv.writer(f)
+        #         writer.writerow(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"])
+        #         for idx, el in enumerate(_list):
+        #             writer.writerow(el)
+            # for timeslot_container in sched.schedule:
+                # writer.writerow(timeslot_container.container)
+                # writer.writerow(timeslot.course for timeslot in timeslot_container.container)
+                # for timeslot in timeslot_container.container:
+                #     writer.writerow(timeslot)
+                #     writer.writerow(timeslot.course)
+            # for item in _list:
+            #     writer.writerow(item)
+        
         # print(f"BEST SCHEDULE : (conflicts = {self.population[0].conflicts})")
         # self.population[0].print()
+
+    def produce_sextuple(self):
+
+        self.top_schedule.name = 'BSCS 2-1'
+
+        for i in range(6):
+            
+            # self.top_children.append(Schedule())
+
+            # print(self.top_children[i].schedule.conflicts)
+            # print(self.top_children[i].schedule.conflict_names)
+
+            _list = [[], [], [], [], [], [], [], [], []]
+            self.top_children.append(Schedule(f"BSCS 2-{i+1}"))
+            
+
+            for j in range(6):
+                self.randomize_timeslots(i, j, deepcopy(self.top_schedule.schedule[j].assigned_courses))
+                # _list[timeslot_idx].append(self.top_children[i].schedule[j].container[timeslot_idx])
+
+            shuffler = [0, 1, 2, 3, 4, 5]
+            new_schedule = Schedule(f"BSCS 2-{i+1}")
+            random.shuffle(shuffler)
+            for k in range(6):
+                new_schedule.schedule[k] = self.top_children[i].schedule[shuffler[k]]
+
+            self.top_children[i].schedule = new_schedule.schedule
+
+            for timeslot_idx in range(len(_list)):
+                for j in range(6):
+                    _list[timeslot_idx].append(self.top_children[i].schedule[j].container[timeslot_idx])
+                    # random.shuffle(self.top_children[i].schedule)
+
+            with open("random_data.csv", "a", encoding="UTF8", newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(self.top_children[i].name)
+                writer.writerow(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"])
+                for idx, el in enumerate(_list):
+                    writer.writerow(el)
+        
+    def randomize_timeslots(self, child_idx, day_idx, assigned_courses):
+        
+        timeslot_container = self.top_children[child_idx].schedule[day_idx]
+        lunch_break1 = timeslot_container.container[timeslot_container.get_timeslot(time(hour=10, minute=30))]
+        lunch_break2 = timeslot_container.container[timeslot_container.get_timeslot(time(hour=12))]
+        for course in assigned_courses:
+            invalid = True
+            while invalid:
+                random_timeslot_idx = random.randrange(0, len(timeslot_container.container))
+                random_timeslot = timeslot_container.container[random_timeslot_idx]
+                if random_timeslot.course == None:
+                    if course.type != 'DIVIDED':
+                        if random_timeslot.start_time.hour < 19:
+                            next_timeslot = timeslot_container.container[random_timeslot_idx+1]
+                            if next_timeslot.course == None:
+                                # if random_timeslot.start_time.hour == 10:
+                                #     if lunch_break2.course == None:
+                                #         invalid = False
+                                if random_timeslot.start_time.hour == 12:
+                                    if lunch_break1.course == None:
+                                        invalid = False
+                                elif random_timeslot.start_time.hour == 9:
+                                    if lunch_break2.course == None:
+                                        invalid = False
+                                elif random_timeslot.start_time.hour != 10:
+                                    invalid = False
+                    else:
+                        invalid = False
+
+            course.assign(timeslot_container.name, random_timeslot.start_time)
+            self.top_children[child_idx].schedule[day_idx].assign(course)
 
     def selection(self):
         print("Starting selection process ", datetime.now().time())
@@ -147,7 +261,7 @@ class Genetic:
             # schedule.print()
             print(schedule.conflicts)
 
-            if schedule.conflicts < 6:
+            if schedule.conflicts == 0:
                 print(schedule.conflicts)
                 print(schedule.conflict_names)
                 schedule.print()
@@ -159,10 +273,10 @@ class Genetic:
             # if len(self.mating_pool) == 0:
             #     return True
         print("Start ranking the mating pool ", datetime.now().time())
-        # self.ranking()
-        # top2 = self.population[:(int(0.1 * self.population_size))]  # ELITISM
+        self.ranking()
+        top2 = self.population[:(int(0.1 * self.population_size))]  # ELITISM
         self.population = []
-        # self.population.extend(top2)
+        self.population.extend(top2)
         print(f"Creating GENERATION {self.current_generation}", datetime.now().time())
         self.current_generation += 1
         # while len(self.population) < 1:
@@ -182,7 +296,7 @@ class Genetic:
         copied_population = self.population
         for i in range(len(self.population)):
             for j in range(len(self.population)):
-                if (self.population[i].conflicts > self.population[j].conflicts):
+                if (self.population[i].conflicts < self.population[j].conflicts):
                     self.population[i], self.population[j] = self.population[j], self.population[i]
 
         # print([population.conflicts for population in copied_population])
