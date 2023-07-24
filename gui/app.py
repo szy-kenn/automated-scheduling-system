@@ -4,6 +4,7 @@ from CTkScrollableDropdown import *
 from PIL import Image, ImageTk
 from classes import *
 from constants import *
+from algo.final import Genetic
 
 ct.set_default_color_theme("gui/app.json")
 
@@ -65,6 +66,7 @@ class App(ct.CTk):
                                           height=SCREEN_HEIGHT,
                                           highlightthickness=0,
                                           background="black")
+        
         self.scheduler_canvas.place(x=0, y=0)
 
         # icons
@@ -94,7 +96,7 @@ class App(ct.CTk):
         self.scheduler_canvas.create_line(505, 66, 505, SCREEN_HEIGHT, fill=DARK_GRAY)
         self.scheduler_canvas.create_line(71, 200, 505, 200, fill=DARK_GRAY)
         self.scheduler_canvas.create_line(505, 240, SCREEN_WIDTH, 240, fill=DARK_GRAY)
-        self.scheduler_canvas.create_line(505, 425, SCREEN_WIDTH, 425, fill=DARK_GRAY)
+        self.scheduler_canvas.create_line(505, 374, SCREEN_WIDTH, 374, fill=DARK_GRAY)
 
         # headings
         self.scheduler_canvas.create_text(99, 25, text="Automated Scheduling System", 
@@ -148,14 +150,14 @@ class App(ct.CTk):
             else:
                 self.scheduler_canvas.create_window(861, 122 + ((idx%4) * 26), window=switch, anchor="nw")
 
-        parameter_options = SegmentedButton(self.scheduler_canvas, width=525, height=28,
-                                            values=["Balanced", "Accurate", "Experimental", "Chaos", "Custom"])
-        self.scheduler_canvas.create_window(522, 280, window=parameter_options, anchor="nw")
+        # parameter_options = SegmentedButton(self.scheduler_canvas, width=525, height=28,
+        #                                     values=["Balanced", "Accurate", "Experimental", "Chaos", "Custom"])
+        # self.scheduler_canvas.create_window(522, 280, window=parameter_options, anchor="nw")
 
-        self.scheduler_canvas.create_text(522, 328, anchor="nw", text="Mutation Rate:", fill="white", font=('Roboto 10'))
-        self.scheduler_canvas.create_text(522, 350, anchor="nw", text="Population Size:", fill="white", font=('Roboto 10'))
-        self.scheduler_canvas.create_text(522, 372, anchor="nw", text="Maximum Generations:", fill="white", font=('Roboto 10'))
-        self.scheduler_canvas.create_text(522, 394, anchor="nw", text="Acceptable Conflicts:", fill="white", font=('Roboto 10'))
+        self.scheduler_canvas.create_text(522, 278, anchor="nw", text="Mutation Rate:", fill="white", font=('Roboto 10'))
+        self.scheduler_canvas.create_text(522, 300, anchor="nw", text="Population Size:", fill="white", font=('Roboto 10'))
+        self.scheduler_canvas.create_text(522, 322, anchor="nw", text="Maximum Generations:", fill="white", font=('Roboto 10'))
+        self.scheduler_canvas.create_text(522, 344, anchor="nw", text="Tournament Size:", fill="white", font=('Roboto 10'))
         
         mutrate_var = ct.StringVar(value="1%")
         mutrate_label = ct.CTkLabel(self.scheduler_canvas, fg_color="#151515",
@@ -168,9 +170,9 @@ class App(ct.CTk):
         mutrate_slider.set(1)
         mutrate_slider.configure(command= lambda x: mutrate_var.set(f"{round(x, 2)}%"))
         
-        self.scheduler_canvas.create_window(780, 330, window=mutrate_slider, anchor="nw")
+        self.scheduler_canvas.create_window(780, 280, window=mutrate_slider, anchor="nw")
         
-        self.scheduler_canvas.create_window(689, 327, window=mutrate_label, anchor="nw")
+        self.scheduler_canvas.create_window(689, 278, window=mutrate_label, anchor="nw")
 
         popsize_var = ct.StringVar(value="200")
         popsize_label = ct.CTkLabel(self.scheduler_canvas,
@@ -178,13 +180,13 @@ class App(ct.CTk):
                                     corner_radius=5, width=66, height=18,
                                     font=ct.CTkFont("Roboto", 12))
         
-        self.scheduler_canvas.create_window(689, 349, window=popsize_label, anchor="nw")
+        self.scheduler_canvas.create_window(689, 300, window=popsize_label, anchor="nw")
         
         popsize_slider = ct.CTkSlider(self.scheduler_canvas, 
                                       from_=50, to=5000, width=393, number_of_steps=99)
         popsize_slider.set(200)
         popsize_slider.configure(command= lambda x: popsize_var.set(f"{int(x)}"))
-        self.scheduler_canvas.create_window(780, 353, window=popsize_slider, anchor="nw")
+        self.scheduler_canvas.create_window(780, 304, window=popsize_slider, anchor="nw")
 
         maxgen_var = ct.StringVar(value="100")
         maxgen_label = ct.CTkLabel(self.scheduler_canvas,
@@ -192,13 +194,13 @@ class App(ct.CTk):
                                     corner_radius=5, width=66, height=18,
                                     font=ct.CTkFont("Roboto", 12))
         
-        self.scheduler_canvas.create_window(689, 371, window=maxgen_label, anchor="nw")
+        self.scheduler_canvas.create_window(689, 322, window=maxgen_label, anchor="nw")
 
         maxgen_slider = ct.CTkSlider(self.scheduler_canvas, 
                                       from_=100, to=1000, width=393, number_of_steps=18)
         maxgen_slider.set(100)
         maxgen_slider.configure(command= lambda x: maxgen_var.set(f"{int(x)}"))
-        self.scheduler_canvas.create_window(780, 375, window=maxgen_slider, anchor="nw")
+        self.scheduler_canvas.create_window(780, 326, window=maxgen_slider, anchor="nw")
 
         acc_conflict_var = ct.StringVar(value="10")
         acc_conflict_label = ct.CTkLabel(self.scheduler_canvas,
@@ -206,23 +208,25 @@ class App(ct.CTk):
                                     corner_radius=5, width=66, height=18,
                                     font=ct.CTkFont("Roboto", 12))
         
-        self.scheduler_canvas.create_window(689, 393, window=acc_conflict_label, anchor="nw")
+        self.scheduler_canvas.create_window(689, 344, window=acc_conflict_label, anchor="nw")
 
         acc_conflict_slider = ct.CTkSlider(self.scheduler_canvas, 
                                       from_=0, to=10, width=393, number_of_steps=10)
         acc_conflict_slider.set(100)
         acc_conflict_slider.configure(command= lambda x: acc_conflict_var.set(f"{int(x)}"))
-        self.scheduler_canvas.create_window(780, 397, window=acc_conflict_slider, anchor="nw")
+        self.scheduler_canvas.create_window(780, 348, window=acc_conflict_slider, anchor="nw")
 
-        # progress bar
-        progress_bar = ct.CTkProgressBar(self.scheduler_canvas, orientation="horizontal",
-                                         width=226, height=17, corner_radius=10)
-        self.scheduler_canvas.create_window(821, 438, window=progress_bar, anchor="nw")
+        # # progress bar
+        # progress_bar = ct.CTkProgressBar(self.scheduler_canvas, orientation="horizontal",
+        #                                  width=226, height=17, corner_radius=10)
+        # self.scheduler_canvas.create_window(821, 438, window=progress_bar, anchor="nw")
 
         # start / stop btn
         control_btn = Button(self.scheduler_canvas, Button.PRIMARY,
                              None, None, width=113, height=21, text="START",
-                            font=ct.CTkFont("Roboto", 12))
+                            font=ct.CTkFont("Roboto", 12),
+                            command=lambda: self.start_algorithm(popsize_var, mutrate_var, maxgen_var, acc_conflict_var))
+        
         self.scheduler_canvas.create_window(1060, 436, window=control_btn, anchor="nw")
 
     def create_home(self):
@@ -256,7 +260,6 @@ class App(ct.CTk):
                                      text="-- DESIGN AND ANALYSIS OF ALGORITHMS --",
                                      fill="gray",
                                      font=('Montserrat 10'))
-
 
         # MAIN BUTTONS
         buttons_frame = ct.CTkFrame(self.home_canvas, width=SCREEN_WIDTH, height=SCREEN_HEIGHT/4)
@@ -333,6 +336,10 @@ class App(ct.CTk):
             self.scheduler_canvas.create_window(123, 252+(idx*46),
                                                 window=course_label, anchor="nw")
 
+    def start_algorithm(self, popsize, mutrate, maxgen, acc_conflicts):
+        print(popsize.get(), mutrate.get(), maxgen.get(), acc_conflicts.get())
+        genetic = Genetic(int(popsize.get()), float(mutrate.get()[:mutrate.get().index("%")])/100, int(maxgen.get()), int(acc_conflicts.get()))
+        genetic.start_world()
 
 app = App()
 app.eval('tk::PlaceWindow . center')

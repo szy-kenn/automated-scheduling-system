@@ -416,7 +416,7 @@ class Genetic:
         pass
 
     def clone(self, schedule, num):
-        
+        pass        
 
     def plot(self):
         # fig = plt.figure(figsize=(10, 10))
