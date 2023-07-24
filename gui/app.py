@@ -155,9 +155,8 @@ class App(ct.CTk):
         self.scheduler_canvas.create_text(522, 328, anchor="nw", text="Mutation Rate:", fill="white", font=('Roboto 10'))
         self.scheduler_canvas.create_text(522, 350, anchor="nw", text="Population Size:", fill="white", font=('Roboto 10'))
         self.scheduler_canvas.create_text(522, 372, anchor="nw", text="Maximum Generations:", fill="white", font=('Roboto 10'))
-        self.scheduler_canvas.create_text(522, 394, anchor="nw", text="Acceptable Solutions:", fill="white", font=('Roboto 10'))
+        self.scheduler_canvas.create_text(522, 394, anchor="nw", text="Acceptable Conflicts:", fill="white", font=('Roboto 10'))
         
-
         mutrate_var = ct.StringVar(value="1%")
         mutrate_label = ct.CTkLabel(self.scheduler_canvas, fg_color="#151515",
                                     corner_radius=5, width=66, height=18,
@@ -201,19 +200,30 @@ class App(ct.CTk):
         maxgen_slider.configure(command= lambda x: maxgen_var.set(f"{int(x)}"))
         self.scheduler_canvas.create_window(780, 375, window=maxgen_slider, anchor="nw")
 
-        accsol_var = ct.StringVar(value="10")
-        accsol_label = ct.CTkLabel(self.scheduler_canvas,
-                                    textvariable=accsol_var, fg_color="#151515",
+        acc_conflict_var = ct.StringVar(value="10")
+        acc_conflict_label = ct.CTkLabel(self.scheduler_canvas,
+                                    textvariable=acc_conflict_var, fg_color="#151515",
                                     corner_radius=5, width=66, height=18,
                                     font=ct.CTkFont("Roboto", 12))
         
-        self.scheduler_canvas.create_window(689, 393, window=accsol_label, anchor="nw")
+        self.scheduler_canvas.create_window(689, 393, window=acc_conflict_label, anchor="nw")
 
-        accsol_slider = ct.CTkSlider(self.scheduler_canvas, 
+        acc_conflict_slider = ct.CTkSlider(self.scheduler_canvas, 
                                       from_=0, to=10, width=393, number_of_steps=10)
-        accsol_slider.set(100)
-        accsol_slider.configure(command= lambda x: accsol_var.set(f"{int(x)}"))
-        self.scheduler_canvas.create_window(780, 397, window=accsol_slider, anchor="nw")
+        acc_conflict_slider.set(100)
+        acc_conflict_slider.configure(command= lambda x: acc_conflict_var.set(f"{int(x)}"))
+        self.scheduler_canvas.create_window(780, 397, window=acc_conflict_slider, anchor="nw")
+
+        # progress bar
+        progress_bar = ct.CTkProgressBar(self.scheduler_canvas, orientation="horizontal",
+                                         width=226, height=17, corner_radius=10)
+        self.scheduler_canvas.create_window(821, 438, window=progress_bar, anchor="nw")
+
+        # start / stop btn
+        control_btn = Button(self.scheduler_canvas, Button.PRIMARY,
+                             None, None, width=113, height=21, text="START",
+                            font=ct.CTkFont("Roboto", 12))
+        self.scheduler_canvas.create_window(1060, 436, window=control_btn, anchor="nw")
 
     def create_home(self):
 
@@ -325,4 +335,5 @@ class App(ct.CTk):
 
 
 app = App()
+app.eval('tk::PlaceWindow . center')
 app.mainloop()
