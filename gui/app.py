@@ -54,6 +54,7 @@ class App(ct.CTk):
 
         self.home = None
         self.scheduler = None
+        self.schedule_frame = None
         self.create_scheduler()
         self.create_home()
         self.show_frame(self.home)
@@ -82,11 +83,11 @@ class App(ct.CTk):
         self.home_icon = ImageTk.PhotoImage(Image.open("assets\home-icon-white.png").resize((32, 30)))
         self.scheduler_canvas.create_image(19, 82, image=self.home_icon, anchor="nw")
 
-        self.history_icon = ImageTk.PhotoImage(Image.open("assets\history-icon-white.png").resize((32, 30)))
-        self.scheduler_canvas.create_image(19, 146, image=self.history_icon, anchor="nw")
+        # self.history_icon = ImageTk.PhotoImage(Image.open("assets\history-icon-white.png").resize((32, 30)))
+        # self.scheduler_canvas.create_image(19, 146, image=self.history_icon, anchor="nw")
 
-        self.log_icon = ImageTk.PhotoImage(Image.open("assets\log-icon-white.png").resize((32, 30)))
-        self.scheduler_canvas.create_image(19, 212, image=self.log_icon, anchor="nw")
+        # self.log_icon = ImageTk.PhotoImage(Image.open("assets\log-icon-white.png").resize((32, 30)))
+        # self.scheduler_canvas.create_image(19, 212, image=self.log_icon, anchor="nw")
 
         self.scheduler_home()
 
@@ -165,22 +166,22 @@ class App(ct.CTk):
         self.scheduler_canvas.create_text(522, 322, anchor="nw", text="Maximum Generations:", fill="white", font=('Roboto 10'))
         self.scheduler_canvas.create_text(522, 344, anchor="nw", text="Tournament Size:", fill="white", font=('Roboto 10'))
         
-        mutrate_var = ct.StringVar(value="1%")
+        mutrate_var = ct.StringVar(value="1.12%")
         mutrate_label = ct.CTkLabel(self.scheduler_canvas, fg_color="#151515",
                                     corner_radius=5, width=66, height=18,
                                     textvariable=mutrate_var,
                                     font=ct.CTkFont("Roboto", 12))
         
         mutrate_slider = ct.CTkSlider(self.scheduler_canvas, 
-                                      from_=0, to=5, width=393, number_of_steps=100)
-        mutrate_slider.set(1)
+                                      from_=0, to=5, width=393, number_of_steps=200)
+        mutrate_slider.set(1.12)
         mutrate_slider.configure(command= lambda x: mutrate_var.set(f"{round(x, 2)}%"))
         
         self.scheduler_canvas.create_window(780, 280, window=mutrate_slider, anchor="nw")
         
         self.scheduler_canvas.create_window(689, 278, window=mutrate_label, anchor="nw")
 
-        popsize_var = ct.StringVar(value="200")
+        popsize_var = ct.StringVar(value="2000")
         popsize_label = ct.CTkLabel(self.scheduler_canvas,
                                     textvariable=popsize_var, fg_color="#151515",
                                     corner_radius=5, width=66, height=18,
@@ -190,7 +191,7 @@ class App(ct.CTk):
         
         popsize_slider = ct.CTkSlider(self.scheduler_canvas, 
                                       from_=50, to=5000, width=393, number_of_steps=99)
-        popsize_slider.set(200)
+        popsize_slider.set(2000)
         popsize_slider.configure(command= lambda x: popsize_var.set(f"{int(x)}"))
         self.scheduler_canvas.create_window(780, 304, window=popsize_slider, anchor="nw")
 
@@ -208,7 +209,7 @@ class App(ct.CTk):
         maxgen_slider.configure(command= lambda x: maxgen_var.set(f"{int(x)}"))
         self.scheduler_canvas.create_window(780, 326, window=maxgen_slider, anchor="nw")
 
-        acc_conflict_var = ct.StringVar(value="10")
+        acc_conflict_var = ct.StringVar(value="5")
         acc_conflict_label = ct.CTkLabel(self.scheduler_canvas,
                                     textvariable=acc_conflict_var, fg_color="#151515",
                                     corner_radius=5, width=66, height=18,
@@ -218,7 +219,7 @@ class App(ct.CTk):
 
         acc_conflict_slider = ct.CTkSlider(self.scheduler_canvas, 
                                       from_=0, to=10, width=393, number_of_steps=10)
-        acc_conflict_slider.set(100)
+        acc_conflict_slider.set(5)
         acc_conflict_slider.configure(command= lambda x: acc_conflict_var.set(f"{int(x)}"))
         self.scheduler_canvas.create_window(780, 348, window=acc_conflict_slider, anchor="nw")
 
@@ -229,11 +230,11 @@ class App(ct.CTk):
 
         # start / stop btn
         control_btn = Button(self.scheduler_canvas, Button.PRIMARY,
-                             None, None, width=113, height=21, text="START",
-                            font=ct.CTkFont("Roboto", 12),
+                             None, None, width=220, height=44, text="START",
+                            font=ct.CTkFont("Roboto", 20, "bold"),
                             command=lambda: self.start_algorithm(popsize_var, mutrate_var, maxgen_var, acc_conflict_var))
         
-        self.scheduler_canvas.create_window(1060, 436, window=control_btn, anchor="nw")
+        self.scheduler_canvas.create_window(743, 499, window=control_btn, anchor="nw")
 
     def create_home(self):
 
@@ -345,8 +346,62 @@ class App(ct.CTk):
     def start_algorithm(self, popsize, mutrate, maxgen, acc_conflicts):
         print(popsize.get(), mutrate.get(), maxgen.get(), acc_conflicts.get())
         genetic = Genetic(int(popsize.get()), float(mutrate.get()[:mutrate.get().index("%")])/100, int(maxgen.get()), int(acc_conflicts.get()))
-        genetic.start_world()
+        optimal_solution = genetic.start_world()
+        if optimal_solution != None:
+            print("".join(optimal_solution))
+            self.show_schedule(optimal_solution)
+            self.show_frame(self.schedule_frame)
 
+    def show_schedule(self, schedule):
+
+        timeslots = ["7:30 AM - 9:00 AM", "9:00 AM - 10:30 AM", "10:30 AM - 12:00 NN",
+                     "12:00 NN - 1:30 PM", "1:30 PM - 3:00 PM", "3:00 PM - 4:30 PM",
+                     "4:30 PM - 6:00 PM", "6:00 PM - 7:30 PM", "7:30 PM - 9:00 PM"]
+        
+        course_dict = {
+            'A': 'Technical Documentation',
+            'B': 'Art Appreciation',
+            'C': "People and the Earth's Ecosystem",
+            'D': 'CS Free Elective 2',
+            'E': "Design and Analysis of Algorithms",
+            'F': "Team Sports",
+            'G': "Operating System (LEC)",
+            'H': "Operating System (LAB)",
+            'I': "Information Management (LEC)",
+            'J': "Information Management (LAB)",
+            '0': "None"
+        }
+
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+        self.schedule_frame = ct.CTkFrame(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, corner_radius=0, fg_color="black")
+
+        self.schedule_frame.grid(row=0, column=0, sticky="nsew")
+        self.schedule_frame.rowconfigure(list(range(11)), weight=1)
+        self.schedule_frame.columnconfigure(list(range(7)), weight=1)
+
+        title = ct.CTkLabel(self.schedule_frame, text="Schedule", font=ct.CTkFont("Roboto", 24, "bold"))
+        title.grid(row=0, column=0, columnspan=10)
+
+
+        for idx, _day in enumerate(days):
+            _slot_label = ct.CTkLabel(self.schedule_frame, text=_day,
+                                      font=ct.CTkFont("Roboto", 12, "bold"), 
+                                      wraplength=100, justify="center", 
+                                      fg_color=DARK_GRAY)
+            _slot_label.grid(row=1, column=idx+1, sticky="nsew", padx=1, pady=1)
+
+        for idx, _slot in enumerate(timeslots):
+            _slot_label = ct.CTkLabel(self.schedule_frame, text=_slot,
+                                      font=ct.CTkFont("Roboto", 10, "bold"), 
+                                      justify="center", fg_color=DARK_GRAY)
+            _slot_label.grid(row=idx+2, column=0, sticky="nsew", padx=1, pady=1)
+
+        for idx, timeslot in enumerate(schedule):
+            if timeslot != "1":
+                timeslot = ct.CTkLabel(self.schedule_frame, text=course_dict[timeslot], 
+                                       font=ct.CTkFont("Roboto", 12), wraplength=100, justify="center", fg_color="#151515")
+                timeslot.grid(row=idx%10+2, column=idx//10+1, sticky="nsew", padx=1, pady=1)
 app = App()
 app.eval('tk::PlaceWindow . center')
 app.mainloop()

@@ -40,6 +40,7 @@ class Genetic:
         self.avg_conflict = 0
         self.plots = []
         self.minimum_conflicts = float('inf')
+        self.optimal_schedule = None
 
     def print(self, schedule):
         timeslots = ["7:30 AM - 9:00 AM", "9:00 AM - 10:30 AM", "10:30 AM - 12:00 NN",
@@ -86,7 +87,7 @@ class Genetic:
         self.plot()
         _end_time = datetime.datetime.now().time()
         print(f"Start: {_start_time}, End: {_end_time}")
-        return 
+        return self.optimal_schedule
     
     def initialize(self):
         for i in range(self.popsize):
@@ -407,6 +408,7 @@ class Genetic:
         #         if self.calculate_fitness(self.population[i]) < self.calculate_fitness(self.population[j]):
         #             self.population[i], self.population[j] = self.population[j], self.population[i]
         self.minimum_conflicts = min
+        self.optimal_schedule = self.population[min_idx]
         print(min)
         self.calculate_fitness(self.population[min_idx], True)
         print("".join(self.population[min_idx]))
@@ -435,13 +437,14 @@ class Genetic:
         plt.grid(color='#2A3459')
 
         # plt.suptitle('PROPORTIONAL GROWTH RATE', fontsize=22)
-        plt.xlabel('Schedules', fontsize=16)
+        plt.xlabel('Generations', fontsize=16)
         plt.ylabel('Conflicts', fontsize=16)
 
         plt.show()
 
-# genetic = Genetic(2000, 0.0125, 100, 5)
-# genetic.start_world()
+if __name__ == "__main__":
+    genetic = Genetic(2000, 0.0125, 100, 5)
+    genetic.start_world()
 
 # genetic = Genetic(200, 0.01, 100, 5)
 # genetic.start_world()
