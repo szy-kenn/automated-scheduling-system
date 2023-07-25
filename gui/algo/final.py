@@ -51,6 +51,7 @@ class Genetic:
         self.lunch_break_indices = [2, 3, 12, 13, 22, 23, 32, 33, 42, 43, 52, 53]
         self.avg_conflict = 0
         self.plots = []
+        self.plots2 = []
         self.minimum_conflicts = float('inf')
         self.optimal_schedule = None
 
@@ -87,19 +88,28 @@ class Genetic:
             
     def start_world(self):
         _start_time = datetime.datetime.now().time()
+        gen = 1
         # while self.minimum_conflicts > 0:
         print("Starting World...")
-        self.initialize()
-        for i in range(self.maxgen):
-            # print(f"Generation {i+1}")
-            res = self.selection()
-            if res:
-                break
-        self.evaluation()
+        for i in range(2):
+            self.popsize = 100 * (i+1)
+            self.initialize()
+            for i in range(self.maxgen):
+                # print(f"Generation {i+1}")
+                res = self.selection()
+                if res:
+                    break
+                gen += 1
+            clones = self.evaluation()
+            clones.insert(0, self.optimal_schedule)
+            self.plots.append(gen)
+            self.plots2.append(str(self.popsize))
+            gen = 0
+            self.population = []
         self.plot()
         _end_time = datetime.datetime.now().time()
         print(f"Start: {_start_time}, End: {_end_time}")
-        return self.optimal_schedule
+        return clones
     
     def initialize(self):
         for i in range(self.popsize):
@@ -272,7 +282,7 @@ class Genetic:
     def selection(self):
         
         new_population = []
-        self.plots.append(self.get_avg_conflicts())
+        # self.plots.append(self.get_avg_conflicts())
         # new_population.extend(top_scheds)
         
         while len(new_population) < self.popsize:
@@ -390,17 +400,92 @@ class Genetic:
         self.calculate_fitness(self.population[min_idx], True)
         print("".join(self.population[min_idx]))
         self.print(self.population[min_idx])
+        # clones = self.clone(self.optimal_schedule, 5)
+        # return clones
+        return self.optimal_schedule
 
     def clone(self, schedule, num):
-        pass        
+        
+        # TODO : Fix
 
+        clones = []
+        for _ in range(num):
+            new_schedule = []
+            for day_idx in range(0, len(schedule), 10):
+                new_timeslot = self.randomize_timeslots(schedule[day_idx:day_idx+11])
+                new_schedule.extend(new_timeslot)
+            clones.append(new_schedule)
+
+        # print(clones)
+        for clone in clones:
+            print("".join(clone))
+        return clones
+
+    def randomize_timeslots(self, schedule):
+        
+        assigned_courses = []
+        
+        for timeslot in schedule:
+            if timeslot != "0" and timeslot != "1":
+                if assigned_courses.count(timeslot) == 0:
+                    assigned_courses.append(timeslot)
+
+        all_invalid = True
+        restart = False
+
+        while all_invalid:
+            new_timeslots = ["0" if i != 9 else "1" for i in range(10)]
+            for course in assigned_courses:
+                tries = 0
+                invalid = True
+                restart = False
+                while invalid:
+                    random_timeslot_idx = random.randrange(9)
+                    if new_timeslots[random_timeslot_idx] == "0":
+                        if course == "A":
+                            if random_timeslot_idx == "2":
+                                if new_timeslots[random_timeslot_idx+1] == "0":
+                                    new_timeslots[random_timeslot_idx] = course
+                                    invalid = False
+                            elif random_timeslot_idx == "3":
+                                if new_timeslots[random_timeslot_idx-1] == "0":
+                                    new_timeslots[random_timeslot_idx] = course
+                                    invalid = False
+                            else:
+                                invalid = False
+                        else:
+                            if new_timeslots[random_timeslot_idx+1] == "0":
+                                if course in ("F", "H", "J"):
+                                    if (random_timeslot_idx != 2 and 
+                                        random_timeslot_idx != 7):
+                                        new_timeslots[random_timeslot_idx] = course
+                                        new_timeslots[random_timeslot_idx+1] = course
+                                        invalid = False
+                                else:
+                                    if random_timeslot_idx != "2":
+                                        new_timeslots[random_timeslot_idx] = course
+                                        new_timeslots[random_timeslot_idx+1] = course
+                                        invalid = False
+                    if tries > 5:
+                        invalid = False
+                        restart = True
+                        break
+                    tries += 1
+                
+                if restart:
+                    break
+            
+            if not restart:
+                return new_timeslots
+    
     def plot(self):
         # fig = plt.figure(figsize=(10, 10))
-        plt.style.use("dark_background")
+        # plt.style.use("dark_background")
         plt.rcParams["figure.figsize"] = (12, 5) # size of the chart
         # plt.rcParams['toolbar'] = 'None' # removes toolbar at the bottom
 
-        plt.plot(self.plots)
+        # plt.bar(list(range(len(self.plots))), self.plots)
+        plt.bar(self.plots2, self.plots)
         # plt.plot(self.mutation_count_list)
 
         for color in ['figure.facecolor', 'axes.facecolor', 'savefig.facecolor']:
@@ -408,16 +493,18 @@ class Genetic:
         for color in ['text.color', 'axes.labelcolor', 'xtick.color', 'ytick.color']:
             plt.rcParams[color] = '#E6F9FA'
 
-        plt.grid(color='#2A3459')
+        # plt.grid(color='#2A3459')
 
         # plt.suptitle('PROPORTIONAL GROWTH RATE', fontsize=22)
-        plt.xlabel('Generations', fontsize=16)
-        plt.ylabel('Conflicts', fontsize=16)
+        plt.xlabel('Runs', fontsize=16)
+        plt.ylabel('Generations', fontsize=16)
+        plt.xticks(self.plots2, self.plots2)
+        plt.tick_params(axis='x', which='major', labelsize=12)
 
         plt.show()
 
 if __name__ == "__main__":
-    genetic = Genetic(2000, 0.0125, 100, 5)
+    genetic = Genetic(2000, 0.0125, 500, 5)
     genetic.start_world()
 
 # genetic = Genetic(200, 0.01, 100, 5)

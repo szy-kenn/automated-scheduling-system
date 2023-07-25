@@ -362,62 +362,81 @@ class App(ct.CTk):
         print(constraints_param)
         genetic = Genetic(int(popsize.get()), float(mutrate.get()[:mutrate.get().index("%")])/100, 
                           int(maxgen.get()), int(acc_conflicts.get()), **constraints_param)
-        optimal_solution = genetic.start_world()
-        if optimal_solution != None:
-            print("".join(optimal_solution))
-            self.show_schedule(optimal_solution)
+        optimal_solutions = genetic.start_world()
+        if optimal_solutions != None:
+            # print("".join(optimal_solution))
+            self.show_schedule(optimal_solutions)
             self.show_frame(self.schedule_frame)
 
-    def show_schedule(self, schedule):
+    def show_schedule(self, schedules):
 
-        timeslots = ["7:30 AM - 9:00 AM", "9:00 AM - 10:30 AM", "10:30 AM - 12:00 NN",
-                     "12:00 NN - 1:30 PM", "1:30 PM - 3:00 PM", "3:00 PM - 4:30 PM",
-                     "4:30 PM - 6:00 PM", "6:00 PM - 7:30 PM", "7:30 PM - 9:00 PM"]
-        
-        course_dict = {
-            'A': 'Technical Documentation',
-            'B': 'Art Appreciation',
-            'C': "People and the Earth's Ecosystem",
-            'D': 'CS Free Elective 2',
-            'E': "Design and Analysis of Algorithms",
-            'F': "Team Sports",
-            'G': "Operating System (LEC)",
-            'H': "Operating System (LAB)",
-            'I': "Information Management (LEC)",
-            'J': "Information Management (LAB)",
-            '0': "None"
-        }
+        current_sched = 0
 
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        def _show(idx):
+            
+            nonlocal current_sched
 
+            if 5 >= idx >= 0:
+                schedule = schedules[idx]
+                current_sched = idx
+            else:
+                return
+
+            title = ct.CTkLabel(self.schedule_frame, text=f"Schedule {idx+1}", font=ct.CTkFont("Roboto", 24, "bold"))
+            title.grid(row=0, column=3, columnspan=1)
+
+            timeslots = ["7:30 AM - 9:00 AM", "9:00 AM - 10:30 AM", "10:30 AM - 12:00 NN",
+                        "12:00 NN - 1:30 PM", "1:30 PM - 3:00 PM", "3:00 PM - 4:30 PM",
+                        "4:30 PM - 6:00 PM", "6:00 PM - 7:30 PM", "7:30 PM - 9:00 PM"]
+            
+            course_dict = {
+                'A': 'Technical Documentation',
+                'B': 'Art Appreciation',
+                'C': "People and the Earth's Ecosystem",
+                'D': 'CS Free Elective 2',
+                'E': "Design and Analysis of Algorithms",
+                'F': "Team Sports",
+                'G': "Operating System (LEC)",
+                'H': "Operating System (LAB)",
+                'I': "Information Management (LEC)",
+                'J': "Information Management (LAB)",
+                '0': "None"
+            }
+
+            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+            for idx, _day in enumerate(days):
+                _slot_label = ct.CTkLabel(self.schedule_frame, text=_day,
+                                      font=ct.CTkFont("Roboto", 12, "bold"), 
+                                      wraplength=100, justify="center", 
+                                        fg_color=DARK_GRAY)
+                _slot_label.grid(row=1, column=idx+1, sticky="nsew", padx=1, pady=1)
+
+            for idx, _slot in enumerate(timeslots):
+                _slot_label = ct.CTkLabel(self.schedule_frame, text=_slot,
+                                        font=ct.CTkFont("Roboto", 10, "bold"), 
+                                        justify="center", fg_color=DARK_GRAY)
+                _slot_label.grid(row=idx+2, column=0, sticky="nsew", padx=1, pady=1)
+
+            for idx, timeslot in enumerate(schedule):
+                if timeslot != "1":
+                    timeslot = ct.CTkLabel(self.schedule_frame, text=course_dict[timeslot], 
+                                        font=ct.CTkFont("Roboto", 12), wraplength=100, justify="center", fg_color="#151515")
+                    timeslot.grid(row=idx%10+2, column=idx//10+1, sticky="nsew", padx=1, pady=1)
+            
         self.schedule_frame = ct.CTkFrame(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, corner_radius=0, fg_color="black")
 
         self.schedule_frame.grid(row=0, column=0, sticky="nsew", ipadx=5, ipady=5)
         self.schedule_frame.rowconfigure(list(range(11)), weight=1)
         self.schedule_frame.columnconfigure(list(range(7)), weight=1)
 
-        title = ct.CTkLabel(self.schedule_frame, text="Schedule", font=ct.CTkFont("Roboto", 24, "bold"))
-        title.grid(row=0, column=0, columnspan=10)
+        self.arrow_left = tk.PhotoImage(file="assets/arrow-left.png")
+        arrow_left_btn = ct.CTkButton(self.schedule_frame, text=">", command=lambda : _show(current_sched+1))
+        arrow_left_btn.grid(row=0, column=4)
+        arrow_right_btn = ct.CTkButton(self.schedule_frame, text="<", command=lambda : _show(current_sched-1))
+        arrow_right_btn.grid(row=0, column=2)
+        _show(0)
 
-
-        for idx, _day in enumerate(days):
-            _slot_label = ct.CTkLabel(self.schedule_frame, text=_day,
-                                      font=ct.CTkFont("Roboto", 12, "bold"), 
-                                      wraplength=100, justify="center", 
-                                      fg_color=DARK_GRAY)
-            _slot_label.grid(row=1, column=idx+1, sticky="nsew", padx=1, pady=1)
-
-        for idx, _slot in enumerate(timeslots):
-            _slot_label = ct.CTkLabel(self.schedule_frame, text=_slot,
-                                      font=ct.CTkFont("Roboto", 10, "bold"), 
-                                      justify="center", fg_color=DARK_GRAY)
-            _slot_label.grid(row=idx+2, column=0, sticky="nsew", padx=1, pady=1)
-
-        for idx, timeslot in enumerate(schedule):
-            if timeslot != "1":
-                timeslot = ct.CTkLabel(self.schedule_frame, text=course_dict[timeslot], 
-                                       font=ct.CTkFont("Roboto", 12), wraplength=100, justify="center", fg_color="#151515")
-                timeslot.grid(row=idx%10+2, column=idx//10+1, sticky="nsew", padx=1, pady=1)
 app = App()
 app.eval('tk::PlaceWindow . center')
 app.mainloop()
