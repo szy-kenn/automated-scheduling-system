@@ -21,12 +21,43 @@ class App(ct.CTk):
 
         self.year_values = ["1st Year", "2nd Year", "3rd Year", "4th Year"]
         self.year_var = ct.StringVar(value=self.year_values[1])
-        self.department_values = ["BSCS", "BSIT"]
+        self.department_values = ["1st Semester", "2nd Semester"]
         self.department_var = ct.StringVar(value=self.department_values[0])
 
         self.courses = {
-            "BSCS" : {  "1st Year": [
+            "1st Semester" : {  "1st Year": [
+                            "COMP20023: Computer Programming 1", 
+                            "NSTP10013: CWTS/ROTC", 
+                            "GEED10103: Filipinolohiya at Pambansang Kaunlaran", 
+                            "COMP20013: Introduction to Computing",
+                            "GEED10053: Mathematics in the Modern World", 
+                            "PHED01: Physical Education 1", 
+                            "GEED20023: Politics, Governance and Citizenship", 
+                            "GEED10063: Purposive Communication"
+                        ], "2nd Year": [
+                            "COSC-FE1: CS Free Elective 1",
+                            "COMP20063: Data Structures and Algorithms",
+                            "COMP20073: Discrete Structures 2",
+                            "GEED10093: Ethics",
+                            "COSC30023: Logic Design and Digital Computer Circuits",
+                            "COSC30013: Modeling and Simulation",
+                            "COMP20083: Object Oriented Programming",
+                            "PHED03: Physical Education 3"
+                            # "GEED10223: World Literature"  
+                        ], "3rd Year": [
 
+                        ], "4th Year": [
+
+                        ]},
+            "2nd Semester" : {  "1st Year": [
+                            "MATH20333: Calculus", 
+                            "COMP20033: Computer Programming 2", 
+                            "NSTP10023: CWTS/ROTC",
+                            "COMP20043: Discrete Structures 1",
+                            "GEED10113: Pagsasalin sa Kontekstong Filipino",
+                            "PHED02: Physical Education 2",
+                            "GEED10083: Science, Technology and Society",
+                            "GEED10023: Understanding the Self"
                         ], "2nd Year": [
                             "COMP20113: Technical Documentation and Presentation Skills", 
                             "PHED10042: Team Sports", 
@@ -36,15 +67,6 @@ class App(ct.CTk):
                             "COSC3033: Design and Analysis of Algorithms", 
                             "COSC-FE2: CS Free Elective", 
                             "GEED10073: Art Appreciation"
-                        ], "3rd Year": [
-
-                        ], "4th Year": [
-
-                        ]},
-            "BSIT" : {  "1st Year": [
-
-                        ], "2nd Year": [
-
                         ], "3rd Year": [
 
                         ], "4th Year": [

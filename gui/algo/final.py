@@ -92,7 +92,8 @@ class Genetic:
         # while self.minimum_conflicts > 0:
         print("Starting World...")
         for i in range(2):
-            self.popsize = 100 * (i+1)
+            # self.popsize = 100 * (i+1)
+            # self.mutrate = i
             self.initialize()
             for i in range(self.maxgen):
                 # print(f"Generation {i+1}")
@@ -102,8 +103,9 @@ class Genetic:
                 gen += 1
             clones = self.evaluation()
             clones.insert(0, self.optimal_schedule)
+            # self.plots.append()
+            # self.plots2.append(str(self.mutrate))
             self.plots.append(gen)
-            self.plots2.append(str(self.popsize))
             gen = 0
             self.population = []
         self.plot()
@@ -485,7 +487,7 @@ class Genetic:
         # plt.rcParams['toolbar'] = 'None' # removes toolbar at the bottom
 
         # plt.bar(list(range(len(self.plots))), self.plots)
-        plt.bar(self.plots2, self.plots)
+        plt.bar(list(range(len(self.plots))), self.plots)
         # plt.plot(self.mutation_count_list)
 
         for color in ['figure.facecolor', 'axes.facecolor', 'savefig.facecolor']:
@@ -498,13 +500,14 @@ class Genetic:
         # plt.suptitle('PROPORTIONAL GROWTH RATE', fontsize=22)
         plt.xlabel('Runs', fontsize=16)
         plt.ylabel('Generations', fontsize=16)
-        plt.xticks(self.plots2, self.plots2)
+        # plt.xticks(self.plots2, self.plots2)
+        plt.xticks(list(range(1, len(self.plots) + 1)))
         plt.tick_params(axis='x', which='major', labelsize=12)
 
         plt.show()
 
 if __name__ == "__main__":
-    genetic = Genetic(2000, 0.0125, 500, 5)
+    genetic = Genetic(100, 0.0125, 500, 5)
     genetic.start_world()
 
 # genetic = Genetic(200, 0.01, 100, 5)
