@@ -147,11 +147,11 @@ class App(ct.CTk):
         constraints = ["Lunch Break", "Dismissal Time", "PE Last Class", "Lab Last Class",
                        "Maximum Class", "Lab on the Same Day", "Non-Lab in Lab Day", "Free Day"]
         
-        switch_var = [ct.StringVar(value="on") for _ in range(len(constraints))]
+        self.switch_var = [ct.StringVar(value="on") for _ in range(len(constraints))]
 
         for idx, constraint in enumerate(constraints):
             switch = ct.CTkSwitch(self.scheduler_canvas, text=constraint + " Constraint",
-                                  variable=switch_var[idx], onvalue="on", offvalue="off")
+                                  variable=self.switch_var[idx], onvalue="on", offvalue="off")
             if idx < 4:
                 self.scheduler_canvas.create_window(522, 122 + (idx * 26), window=switch, anchor="nw")
             else:
@@ -195,7 +195,7 @@ class App(ct.CTk):
         popsize_slider.configure(command= lambda x: popsize_var.set(f"{int(x)}"))
         self.scheduler_canvas.create_window(780, 304, window=popsize_slider, anchor="nw")
 
-        maxgen_var = ct.StringVar(value="100")
+        maxgen_var = ct.StringVar(value="50")
         maxgen_label = ct.CTkLabel(self.scheduler_canvas,
                                     textvariable=maxgen_var, fg_color="#151515",
                                     corner_radius=5, width=66, height=18,
@@ -204,8 +204,8 @@ class App(ct.CTk):
         self.scheduler_canvas.create_window(689, 322, window=maxgen_label, anchor="nw")
 
         maxgen_slider = ct.CTkSlider(self.scheduler_canvas, 
-                                      from_=100, to=1000, width=393, number_of_steps=18)
-        maxgen_slider.set(100)
+                                      from_=50, to=1000, width=393, number_of_steps=19)
+        maxgen_slider.set(50)
         maxgen_slider.configure(command= lambda x: maxgen_var.set(f"{int(x)}"))
         self.scheduler_canvas.create_window(780, 326, window=maxgen_slider, anchor="nw")
 
@@ -345,7 +345,23 @@ class App(ct.CTk):
 
     def start_algorithm(self, popsize, mutrate, maxgen, acc_conflicts):
         print(popsize.get(), mutrate.get(), maxgen.get(), acc_conflicts.get())
-        genetic = Genetic(int(popsize.get()), float(mutrate.get()[:mutrate.get().index("%")])/100, int(maxgen.get()), int(acc_conflicts.get()))
+
+        constraints_param = {
+            '_lunch_break' : True, 
+            '_dismissal' : True, 
+            '_pe_last' : True,
+            '_lab_last' : True, 
+            '_maxclass' : True, 
+            '_lab_sameday' : True, 
+            '_nonlab_in_lab' : True, 
+            '_free_day' : True
+        }
+        for idx, var in enumerate(self.switch_var):
+            if var.get() == "off":
+                constraints_param[list(constraints_param.keys())[idx]] = False
+        print(constraints_param)
+        genetic = Genetic(int(popsize.get()), float(mutrate.get()[:mutrate.get().index("%")])/100, 
+                          int(maxgen.get()), int(acc_conflicts.get()), **constraints_param)
         optimal_solution = genetic.start_world()
         if optimal_solution != None:
             print("".join(optimal_solution))
@@ -376,7 +392,7 @@ class App(ct.CTk):
 
         self.schedule_frame = ct.CTkFrame(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, corner_radius=0, fg_color="black")
 
-        self.schedule_frame.grid(row=0, column=0, sticky="nsew")
+        self.schedule_frame.grid(row=0, column=0, sticky="nsew", ipadx=5, ipady=5)
         self.schedule_frame.rowconfigure(list(range(11)), weight=1)
         self.schedule_frame.columnconfigure(list(range(7)), weight=1)
 

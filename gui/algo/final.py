@@ -24,11 +24,23 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 
 class Genetic:
-    def __init__(self, popsize, mutrate, maxgen, selection_pressure) -> None:
+    def __init__(self, popsize, mutrate, maxgen, selection_pressure, *,
+                 _lunch_break=True, _dismissal=True, _pe_last=True,
+                 _lab_last=True, _maxclass=True, _lab_sameday=True, 
+                 _nonlab_in_lab=True, _free_day=True) -> None:
         self.popsize = popsize
         self.mutrate = mutrate
         self.maxgen = maxgen
         self.selection_pressure = selection_pressure
+
+        self._lunch_break = _lunch_break
+        self._dismissal = _dismissal
+        self._pe_last = _pe_last
+        self._lab_last = _lab_last
+        self._maxclass = _maxclass
+        self._lab_sameday = _lab_sameday
+        self._nonlab_in_lab = _nonlab_in_lab
+        self._free_day = _free_day
 
         self.courses = ['A', 'A', 'B',
                         'C', 'D', 'E',
@@ -114,17 +126,6 @@ class Genetic:
     
     def calculate_fitness(self, schedule: list, _print=False):
         conflicts = 0
-        
-       # HARD CONSTRAINTS
-        # for course in self.courses:
-        #     if course not in ("0", "1"):
-        #         if course in ('A', 'B'):
-        #             if schedule.count(course) > 1:
-        #                 conflicts += 20 * (schedule.count(course) - 1)
-        #         else:
-        #             if schedule.count(course) > 2:
-        #                 conflicts += 20 * (schedule.count(course) - 2) / 2
-        
 
         # ascii code - 65 (A (65 - 65) = 0 index)
         all_classes_count = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -134,12 +135,13 @@ class Genetic:
         # SOFT CONSTRAINTS
 
         # lunch break
-        for i in range(0, len(self.lunch_break_indices), 2):
-            # print(f"{i}: {schedule[self.lunch_break_indices[i]]} | {i+1}: {schedule[self.lunch_break_indices[i+1]]}")
-            if schedule[self.lunch_break_indices[i]] != "0" and schedule[self.lunch_break_indices[i+1]] != "0":
-                if _print:
-                    print("No lunch break", 10)
-                conflicts += 10
+        if self._lunch_break:
+            for i in range(0, len(self.lunch_break_indices), 2):
+                # print(f"{i}: {schedule[self.lunch_break_indices[i]]} | {i+1}: {schedule[self.lunch_break_indices[i+1]]}")
+                if schedule[self.lunch_break_indices[i]] != "0" and schedule[self.lunch_break_indices[i+1]] != "0":
+                    if _print:
+                        print("No lunch break", 10)
+                    conflicts += 10
 
         for idx, timeslot in enumerate(schedule):
             if idx == 0:
@@ -150,12 +152,14 @@ class Genetic:
             if idx%10 == 0 and idx != 0:
                 classes = 0
 
-            # if end of day
-            if timeslot == "1":
-                if classes > 6:
-                    if _print:
-                        print("+3 classes", 4)
-                    conflicts += 4
+
+            if self._maxclass:
+                # if end of day
+                if timeslot == "1":
+                    if classes > 6:
+                        if _print:
+                            print("+3 classes", 4)
+                        conflicts += 4
 
             # count classes per day
             if timeslot != "0" and timeslot != "1":
@@ -172,37 +176,49 @@ class Genetic:
             if timeslot != "1" and schedule[idx+1] == "1":
                 if timeslot != "0":
                     # if lab or PE
-                    if timeslot in ("F", "H", "J"):
-                        if _print:
-                            print("lab/pe last class", 5)
-                        conflicts += 5
+                    if timeslot in ("H", "J"):
+                        if self._lab_last:
+                            if _print:
+                                print("lab last class", 5)
+                            conflicts += 5
+                    elif timeslot == "F":
+                        if self._pe_last:
+                            if _print:
+                                print("lab last class", 5)
+                            conflicts += 5                         
                     else:
-                        if _print:
-                            print("may klase sa gabi", 3)
-                        conflicts += 3           
+                        if self._dismissal:
+                            if _print:
+                                print("may klase sa gabi", 3)
+                            conflicts += 3           
 
         # free day constraint
-        if not any(all_day_classes):
-            if _print:
-                print("walang free day", 2)
-            conflicts += 2
+        if self._free_day:
+            if not any(all_day_classes):
+                if _print:
+                    print("walang free day", 2)
+                conflicts += 2
 
         # lab constraint
         if lab['H'] == None or lab['J'] == None:
-            if _print:
-                print("No lab", 8)
-            conflicts += 8
+            if self._lab_sameday:
+                if _print:
+                    print("No lab", 8)
+                conflicts += 8
         elif lab['H'] != lab['J']:
-            if _print:
-                print("Di sabay", 8)
-            conflicts += 8
-            if day_classes_count[lab['H']] > 2:
-                conflicts += 5
-            if day_classes_count[lab['J']] > 2:
-                conflicts += 5
+            if self._lab_sameday:
+                if _print:
+                    print("Di sabay", 8)
+                conflicts += 8
+            if self._nonlab_in_lab:
+                if day_classes_count[lab['H']] > 2:
+                    conflicts += 5
+                if day_classes_count[lab['J']] > 2:
+                    conflicts += 5
         else:
-            if day_classes_count[lab['H']] > 4:
-                conflicts += 10
+            if self._nonlab_in_lab:
+                if day_classes_count[lab['H']] > 4:
+                    conflicts += 10
 
         # HARD CONSTRAINTS
         for idx, class_count in enumerate(all_classes_count):
@@ -251,15 +267,6 @@ class Genetic:
                     break
             participants[j+1] = current
 
-        # min = float('inf')
-        # min_idx = 0
-        # for sched_idx in participants:
-        #     conflicts = self.calculate_fitness(self.population[sched_idx])
-        #     # print(conflicts)
-        #     if conflicts < min:
-        #         min = conflicts
-        #         min_idx = sched_idx
-
         return (participants[0], participants[1])
 
     def selection(self):
@@ -282,14 +289,6 @@ class Genetic:
             parent_a_idx = parents[0]
             parent_b_idx = parents[1]
 
-            # participants = []
-
-            # tournament
-            # while len(participants) < self.selection_pressure:
-            #     participants.append(random.randrange(len(self.population)))
-
-            # parent_b_idx = random.randrange(len(self.population))
-
             child = self.crossover(parent_a_idx, parent_b_idx)
             new_population.append(child)    
 
@@ -299,24 +298,6 @@ class Genetic:
             # new_population.append(self.population[parent_b_idx])
 
         self.population = new_population
-
-        # self.mating_pool = []
-        # for idx, schedule in enumerate(self.population):
-        #     conflicts = self.calculate_fitness(schedule)
-        #     # print(conflicts)
-        #     # print("".join(schedule))
-        #     if conflicts == 0:
-        #         courses = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-        #         for course in courses:
-        #             print(f"{course} {schedule.count(course)}")
-        #         print("".join(schedule))
-        #         print(conflicts)
-        #         return True
-        #     for i in range(self.get_mating_probability(conflicts)):
-        #         self.mating_pool.append(idx)
-
-        # self.ranking()
-        # top_scheds = self.population[:int(0.1 * self.popsize)]
 
     def crossover(self, parent_a, parent_b):
         midpoint = random.choice([9, 19, 29, 39, 49])
@@ -403,19 +384,12 @@ class Genetic:
                 min = conflicts
                 min_idx = i
 
-        # for i in range(len(self.population)):
-        #     for j in range(len(self.population)):
-        #         if self.calculate_fitness(self.population[i]) < self.calculate_fitness(self.population[j]):
-        #             self.population[i], self.population[j] = self.population[j], self.population[i]
         self.minimum_conflicts = min
         self.optimal_schedule = self.population[min_idx]
         print(min)
         self.calculate_fitness(self.population[min_idx], True)
         print("".join(self.population[min_idx]))
         self.print(self.population[min_idx])
-
-    def elitism(self):
-        pass
 
     def clone(self, schedule, num):
         pass        
