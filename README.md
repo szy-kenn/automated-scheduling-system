@@ -14,7 +14,7 @@ A genetic algorithm (GA) is a powerful problem-solving programming technique. It
 
 ### System Architecture
 
-![System Architecture](assets\img\system-architecture.png)
+![System Architecture](assets/img/system-architecture.png)
 
 ### User Interface
 
