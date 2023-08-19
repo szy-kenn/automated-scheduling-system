@@ -47,6 +47,13 @@ class TimeslotContainer(TimeRange):
                 assigned_courses.append(timeslot.course)
         return assigned_courses
     
+    def get_all_courses(self) -> list[tuple]:
+        all_courses = []
+        for timeslot in self.container:
+            if timeslot.course != None:
+                all_courses.append((timeslot.course.code, timeslot.course.type))
+        return all_courses
+
     def get_valid_positions(self) -> list:
 
         valid_positions = []

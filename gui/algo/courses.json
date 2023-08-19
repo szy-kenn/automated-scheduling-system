@@ -1,0 +1,171 @@
+{
+    "Colleges" : {
+
+        "BSCS": {
+            "1st Year": [
+                [
+                    "COMP20023: Computer Programming 1", 
+                    "NSTP10013: CWTS/ROTC", 
+                    "GEED10103: Filipinolohiya at Pambansang Kaunlaran", 
+                    "COMP20013: Introduction to Computing",
+                    "GEED10053: Mathematics in the Modern World", 
+                    "PHED01: Physical Education 1", 
+                    "GEED20023: Politics, Governance and Citizenship", 
+                    "GEED10063: Purposive Communication"
+                ],
+
+                [
+                    "MATH20333: Calculus", 
+                    "COMP20033: Computer Programming 2", 
+                    "NSTP10023: CWTS/ROTC",
+                    "COMP20043: Discrete Structures 1",
+                    "GEED10113: Pagsasalin sa Kontekstong Filipino",
+                    "PHED02: Physical Education 2",
+                    "GEED10083: Science, Technology and Society",
+                    "GEED10023: Understanding the Self"
+                ]
+
+            ], "2nd Year": [
+                [
+                    "COSC-FE1: CS Free Elective 1",
+                    "COMP20063: Data Structures and Algorithms",
+                    "COMP20073: Discrete Structures 2",
+                    "GEED10093: Ethics",
+                    "COSC30023: Logic Design and Digital Computer Circuits",
+                    "COSC30013: Modeling and Simulation",
+                    "COMP20083: Object Oriented Programming",
+                    "PHED03: Physical Education 3",
+                    "GEED10223: World Literature"
+                ],
+
+                [
+                    "COMP20113: Technical Documentation and Presentation Skills", 
+                    "PHED10042: Team Sports", 
+                    "GEED20113: People and Earth's Ecosystem", 
+                    "COMP20103: Operating Systems",
+                    "COMP20093: Information Management", 
+                    "COSC3033: Design and Analysis of Algorithms", 
+                    "COSC-FE2: CS Free Elective", 
+                    "GEED10073: Art Appreciation"
+                ]
+            ], "3rd Year": [
+                [
+                    "COMP20133: Applications Development and Emerging Technologies",
+                    "COSC30053: Automata and Language Theory",
+                    "COSC30043: Computer Organization and Assembly Language",
+                    "COSC-E1: CS Elective 1",
+                    "COMP20123: Fundamentals of Research",
+                    "COMP20143: Human Computer Interaction",
+                    "COSC30063: Principles of Programming Languages"
+                ],
+
+                [   
+                    "COSC-E2: CS Elective 2",
+                    "COSC40013: CS Thesis Writing 1",
+                    "COMP20173: Data Communications and Networking",
+                    "COMP20053: Information Assurance and Security",
+                    "COSC30073: Introduction to Artificial Intelligence",
+                    "COMP20153: Software Engineering 1",
+                    "COMP20163: Web Development"
+                ]
+            
+            ], "4th Year": [
+                [
+                    "COSC-E3: CS Elective 3",
+                    "COSC40033: CS Thesis Writing 2",
+                    "GEED20073: Philippine Popular Culture",
+                    "GEED10033: Readings in Philippine History",
+                    "COMP20183: Software Engineering 2",
+                    "GEED10043: The Contemporary World"
+
+                ],  
+
+                [
+                    "GEED10013: Buhay at Mga Sinulat ni Rizal",
+                    "COSC-E4: CS Elective 4",
+                    "COSC30083: Professional Ethics for Computer Scientist",
+                    "COMP20333: Social and Professional Issues in IT"
+                ]
+            ]
+            },
+        "BSIT": {
+            "1st Year": [
+                [
+                    "ACCO20213: Accounting Principles",
+                    "COMP20023: Computer Programming 1",
+                    "NSTP10013: CWTS/ROTC",
+                    "GEED10103: Filipinolohiya at Pambansang Kaunlaran",
+                    "COMP20013: Introduction to Computing",
+                    "GEED10053: Mathematics in the Modern World",
+                    "PHED01: Physical Education 1",
+                    "GEED10063: Purposive Communication"
+                ],
+
+                [
+                    "COMP20033: Computer Programming 2",
+                    "NSTP10023: CWTS/ROTC",
+                    "COMP20043: Discrete Structures 1",
+                    "GEED10113: Pagsasalin sa Kontekstong Filipino",
+                    "PHED02: Physical Education 2",
+                    "GEED20023: Politics, Governance and Citizenship",
+                    "GEED10033: Readings in Philippine History"
+                ]
+    
+            ], "2nd Year": [
+                [
+                    "COMP20173: Data Communications and Networking",
+                    "COMP20063:Data Structures and Algorithms",
+                    "COMP20103:  Operating Systems",
+                    "PHED03: Physical Education 3",
+                    "INTE30013: Programming 3 (Structured Programming)",
+                    "GEED20093: Reading Visual Arts",
+                    "GEED10023: Understanding the Self",
+                    "GEED10223: World Literature"
+                ],
+
+                [
+                    "COMP20143: Human Computer Interaction",
+                    "COMP20093: Information Management",
+                    "INTE:30023: Integrative Programming and Technologies 1",
+                    "COMP20193: Network Administration",
+                    "COMP20083: Object Oriented Programming",
+                    "GEED20113: People and the Earth`s Ecosystem",
+                    "PHED04: Physical Education 4",
+                    "COMP20203: Quantitative Methods with Modeling and Simulation" 
+                ]
+            ], "3rd Year": [
+                    [ 
+                        "GEED10073: Art Appreciation",
+                        "COMP20213: Database Administration",
+                        "COMP20123: Fundamentals of Research",
+                        "INTE-E1: IT Elective 1",
+                        "INTE30043: Multimedia",
+                        "INTE30033: Systems  Integration and Architecture 1 ",
+                        "COMP20163:Web Development"
+                    ],
+
+                    [
+                        "COMP20133: Applications Development and Emerging Technologies",
+                        "INTE30063: Information Assurance and Security 1",
+                        "INTEE-E2: IT Elective 2",
+                        "BUMA20063: Principles of Management and Organization",
+                        "COMP20243: Systems Analysis and Design",
+                        "COMP20233: Technopreneurship",
+                         "COMP10043: The Contemporary World"
+                    ]
+            ], "4th Year": [
+                [
+                    "GEED10013: Buhay at Mga Sulat ni Rizal",
+                    "INTE40173: Capstone Project 2",
+                    "INTE30073: Information Assurance and Security 2",
+                    "INTE-E3: IT Elective 3",
+                    "INTE-E4: IT Elective 4",
+                    "GEED10083: Science, Technology and Society",
+                    "COMP20333: Social and Professional Issues in It",
+                    "INTE30083: Systems Administration and Maintenance"
+                ]      
+            ]
+            }
+    }
+
+} 
