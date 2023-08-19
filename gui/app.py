@@ -240,7 +240,7 @@ class App(ct.CTk):
         self.scheduler_canvas.create_window(689, 344, window=acc_conflict_label, anchor="nw")
 
         acc_conflict_slider = ct.CTkSlider(self.scheduler_canvas, 
-                                      from_=0, to=10, width=393, number_of_steps=10)
+                                      from_=2, to=10, width=393, number_of_steps=10)
         acc_conflict_slider.set(5)
         acc_conflict_slider.configure(command= lambda x: acc_conflict_var.set(f"{int(x)}"))
         self.scheduler_canvas.create_window(780, 348, window=acc_conflict_slider, anchor="nw")
@@ -442,7 +442,11 @@ class App(ct.CTk):
 
             for idx, timeslot in enumerate(schedule):
                 if timeslot != "1":
-                    timeslot = ct.CTkLabel(self.schedule_frame, text=course_dict[timeslot], 
+                    if timeslot == "0":
+                        txt_color = "gray"
+                    else:
+                        txt_color = "white"
+                    timeslot = ct.CTkLabel(self.schedule_frame, text=course_dict[timeslot], text_color=txt_color,
                                         font=ct.CTkFont("Roboto", 12), wraplength=100, justify="center", fg_color="#151515")
                     timeslot.grid(row=idx%10+2, column=idx//10+1, sticky="nsew", padx=1, pady=1)
             

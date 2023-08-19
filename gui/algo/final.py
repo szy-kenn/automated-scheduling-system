@@ -1,3 +1,8 @@
+import random
+import datetime
+import matplotlib.pyplot as plt
+from copy import deepcopy
+
 '''
     A - TechDoc (Divided)
     A - TechDoc (Divided)
@@ -10,18 +15,7 @@
     H - OS (LAB)
     I - IM (LEC)
     J - IM (LAB)
-
-    00000 - None
-    00001 - TechDoc
-    10001  - ArtApp
-    0010 - PEco
-    00101 - OS Lec
-    10101 - OS Lab
 '''
-import random
-import datetime
-import matplotlib.pyplot as plt
-from copy import deepcopy
 
 class Genetic:
     def __init__(self, popsize, mutrate, maxgen, selection_pressure, *,
@@ -82,33 +76,19 @@ class Genetic:
             while timeslot_idx < 9:
                 print(f"{timeslots[timeslot_idx]}:\t{course_dict[schedule[day_idx+timeslot_idx]]}")
                 timeslot_idx += 1
-        # for idx, timeslot in enumerate(schedule):
-        #     print(f"{days[idx%10]}")
-        #     print(f"{timeslots[idx]}: {course_dict[timeslot]}")
             
     def start_world(self):
         _start_time = datetime.datetime.now().time()
-        gen = 1
-        # while self.minimum_conflicts > 0:
         print("Starting World...")
-        for i in range(2):
-            # self.popsize = 100 * (i+1)
-            # self.mutrate = i
-            self.initialize()
-            for i in range(self.maxgen):
-                # print(f"Generation {i+1}")
-                res = self.selection()
-                if res:
-                    break
-                gen += 1
-            clones = self.evaluation()
-            clones.insert(0, self.optimal_schedule)
-            # self.plots.append()
-            # self.plots2.append(str(self.mutrate))
-            self.plots.append(gen)
-            gen = 0
-            self.population = []
+        self.initialize()
+        for i in range(self.maxgen):
+            res = self.selection()
+            if res:
+                break
+        clones = self.evaluation()
+        clones.insert(0, self.optimal_schedule)
         self.plot()
+
         _end_time = datetime.datetime.now().time()
         print(f"Start: {_start_time}, End: {_end_time}")
         return clones
@@ -149,7 +129,6 @@ class Genetic:
         # lunch break
         if self._lunch_break:
             for i in range(0, len(self.lunch_break_indices), 2):
-                # print(f"{i}: {schedule[self.lunch_break_indices[i]]} | {i+1}: {schedule[self.lunch_break_indices[i+1]]}")
                 if schedule[self.lunch_break_indices[i]] != "0" and schedule[self.lunch_break_indices[i+1]] != "0":
                     if _print:
                         print("No lunch break", 10)
@@ -163,7 +142,6 @@ class Genetic:
             # if start of day
             if idx%10 == 0 and idx != 0:
                 classes = 0
-
 
             if self._maxclass:
                 # if end of day
@@ -243,7 +221,6 @@ class Genetic:
                     print("kulang", 20)
                 conflicts += 20
 
-        # print(all_classes_count)
         return int(conflicts)
  
     def get_mating_probability(self, conflicts):
@@ -263,9 +240,6 @@ class Genetic:
             while j >= 0:
                 current_participant_conflict = self.calculate_fitness(self.population[current])
                 next_participant_conflict = self.calculate_fitness(self.population[participants[j]])
-                # print(current_participant_conflict)
-                # print(next_participant_conflict)
-                # self.plots.append(current_participant_conflict)
                 if current_participant_conflict == 0:
                     print(self.population[current])
                     return "0"
@@ -284,8 +258,7 @@ class Genetic:
     def selection(self):
         
         new_population = []
-        # self.plots.append(self.get_avg_conflicts())
-        # new_population.extend(top_scheds)
+        self.plots.append(self.get_avg_conflicts())
         
         while len(new_population) < self.popsize:
 
@@ -306,21 +279,14 @@ class Genetic:
 
             child2 = self.crossover(parent_b_idx, parent_a_idx)
             new_population.append(child2)
-            # new_population.append(self.population[parent_a_idx])
-            # new_population.append(self.population[parent_b_idx])
 
         self.population = new_population
 
     def crossover(self, parent_a, parent_b):
         midpoint = random.choice([9, 19, 29, 39, 49])
-        # print(midpoint)
         child = []
         child.extend(deepcopy( self.population[parent_a][:midpoint] ))
         child.extend(deepcopy( self.population[parent_b][midpoint:] ))
-        # print("================")
-        # print("".join(self.population[parent_a][:midpoint]))
-        # print("".join(self.population[parent_b][midpoint:]))
-        # print("".join(child))
         child = self.mutation(child)
         return child
     
@@ -402,23 +368,22 @@ class Genetic:
         self.calculate_fitness(self.population[min_idx], True)
         print("".join(self.population[min_idx]))
         self.print(self.population[min_idx])
-        # clones = self.clone(self.optimal_schedule, 5)
-        # return clones
-        return self.optimal_schedule
+        clones = self.clone(self.optimal_schedule, 5)
+        return clones
 
     def clone(self, schedule, num):
-        
-        # TODO : Fix
 
         clones = []
+
         for _ in range(num):
+            days = [0, 10, 20, 30, 40, 50]
             new_schedule = []
-            for day_idx in range(0, len(schedule), 10):
-                new_timeslot = self.randomize_timeslots(schedule[day_idx:day_idx+11])
+            while days:
+                day_idx = days.pop(random.randrange(len(days)))
+                new_timeslot = self.randomize_timeslots(schedule[day_idx:day_idx+10])
                 new_schedule.extend(new_timeslot)
             clones.append(new_schedule)
 
-        # print(clones)
         for clone in clones:
             print("".join(clone))
         return clones
@@ -429,7 +394,9 @@ class Genetic:
         
         for timeslot in schedule:
             if timeslot != "0" and timeslot != "1":
-                if assigned_courses.count(timeslot) == 0:
+                if timeslot == "A":
+                    assigned_courses.append(timeslot)
+                elif assigned_courses.count(timeslot) == 0:
                     assigned_courses.append(timeslot)
 
         all_invalid = True
@@ -454,6 +421,7 @@ class Genetic:
                                     new_timeslots[random_timeslot_idx] = course
                                     invalid = False
                             else:
+                                new_timeslots[random_timeslot_idx] = course
                                 invalid = False
                         else:
                             if new_timeslots[random_timeslot_idx+1] == "0":
@@ -481,33 +449,21 @@ class Genetic:
                 return new_timeslots
     
     def plot(self):
-        # fig = plt.figure(figsize=(10, 10))
-        # plt.style.use("dark_background")
         plt.rcParams["figure.figsize"] = (12, 5) # size of the chart
-        # plt.rcParams['toolbar'] = 'None' # removes toolbar at the bottom
 
-        # plt.bar(list(range(len(self.plots))), self.plots)
-        plt.bar(list(range(len(self.plots))), self.plots)
-        # plt.plot(self.mutation_count_list)
-
+        plt.plot(self.plots)
         for color in ['figure.facecolor', 'axes.facecolor', 'savefig.facecolor']:
             plt.rcParams[color] = '#052C30' 
         for color in ['text.color', 'axes.labelcolor', 'xtick.color', 'ytick.color']:
             plt.rcParams[color] = '#E6F9FA'
 
-        # plt.grid(color='#2A3459')
-
-        # plt.suptitle('PROPORTIONAL GROWTH RATE', fontsize=22)
-        plt.xlabel('Runs', fontsize=16)
-        plt.ylabel('Generations', fontsize=16)
-        # plt.xticks(self.plots2, self.plots2)
-        plt.xticks(list(range(1, len(self.plots) + 1)))
-        plt.tick_params(axis='x', which='major', labelsize=12)
+        plt.xlabel('Generations', fontsize=16)
+        plt.ylabel('Conflicts', fontsize=16)
 
         plt.show()
 
 if __name__ == "__main__":
-    genetic = Genetic(100, 0.0125, 500, 5)
+    genetic = Genetic(2000, 0.0125, 500, 5)
     genetic.start_world()
 
 # genetic = Genetic(200, 0.01, 100, 5)
